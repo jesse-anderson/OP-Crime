@@ -1,6 +1,8 @@
 .streamlit/secrets.toml
 
 env_vars.txt
+recipients.csv
+credentials.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
