@@ -5,6 +5,14 @@ from streamlit_folium import st_folium
 from datetime import datetime, timedelta
 import numpy as np
 
+# Define Mailchimp API details from secrets
+MAILCHIMP_API_KEY = st.secrets["mailchimp"]["api_key"]
+MAILCHIMP_AUDIENCE_ID = st.secrets["mailchimp"]["audience_id"]
+MAILCHIMP_DATA_CENTER = st.secrets["mailchimp"]["data_center"]
+
+# Mailchimp API endpoint
+MAILCHIMP_API_URL = f"https://{MAILCHIMP_DATA_CENTER}.api.mailchimp.com/3.0"
+
 def safe_field(value):
     """
     Return the string version of a field or 'Not found' if it's missing/NaN/empty.
@@ -51,6 +59,62 @@ def show_disclaimer():
     else:
         st.stop()
 
+def validate_email(email):
+    """
+    Validates the email format using regex.
+    """
+    email_regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+    return re.match(email_regex, email) is not None
+
+def subscribe_email(email):
+    """
+    Subscribes an email to the Mailchimp audience.
+    """
+    # Mailchimp requires the subscriber hash, which is the MD5 hash of the lowercase version of the email
+    import hashlib
+    email_lower = email.lower().encode()
+    subscriber_hash = hashlib.md5(email_lower).hexdigest()
+
+    url = f"{MAILCHIMP_API_URL}/lists/{MAILCHIMP_AUDIENCE_ID}/members/{subscriber_hash}"
+
+    data = {
+        "email_address": email,
+        "status_if_new": "subscribed"
+    }
+
+    response = requests.put(
+        url,
+        auth=("anystring", MAILCHIMP_API_KEY),
+        json=data
+    )
+
+    return response
+
+def add_email_subscription():
+    """
+    Provides a form for users to subscribe to email updates via Mailchimp.
+    """
+    st.sidebar.markdown("## Subscribe to Email Updates")
+    with st.sidebar.form("email_subscription_form"):
+        email = st.text_input("Enter your email address:")
+        submit_button = st.form_submit_button("Subscribe")
+
+        if submit_button:
+            if validate_email(email):
+                response = subscribe_email(email)
+                if response.status_code == 200:
+                    # Check if the email was already subscribed
+                    response_data = response.json()
+                    if response_data["status"] == "subscribed":
+                        st.sidebar.success("Subscription successful! You've been added to the email list.")
+                    else:
+                        st.sidebar.info("You are already subscribed.")
+                else:
+                    # Handle errors
+                    error_message = response.json().get('detail', 'An error occurred.')
+                    st.sidebar.error(f"Subscription failed: {error_message}")
+            else:
+                st.sidebar.error("Please enter a valid email address.")
 def main_app():
     """
     The main body of the application: date filters, offense filter, map, etc.
