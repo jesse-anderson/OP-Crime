@@ -4,6 +4,9 @@ import folium
 from streamlit_folium import st_folium
 from datetime import datetime, timedelta
 import numpy as np
+import re
+import hashlib
+import requests
 
 # Define Mailchimp API details from secrets
 MAILCHIMP_API_KEY = st.secrets["mailchimp"]["api_key"]
@@ -71,7 +74,6 @@ def subscribe_email(email):
     Subscribes an email to the Mailchimp audience.
     """
     # Mailchimp requires the subscriber hash, which is the MD5 hash of the lowercase version of the email
-    import hashlib
     email_lower = email.lower().encode()
     subscriber_hash = hashlib.md5(email_lower).hexdigest()
 
@@ -79,7 +81,8 @@ def subscribe_email(email):
 
     data = {
         "email_address": email,
-        "status_if_new": "subscribed"
+        "status": "subscribed",  # Explicitly set status to 'subscribed'
+        "status_if_new": "subscribed"  # Ensure new members are subscribed
     }
 
     response = requests.put(
@@ -90,44 +93,116 @@ def subscribe_email(email):
 
     return response
 
+def unsubscribe_email(email):
+    """
+    Unsubscribes an email from the Mailchimp audience.
+    """
+    # Mailchimp requires the subscriber hash, which is the MD5 hash of the lowercase version of the email
+    email_lower = email.lower().encode()
+    subscriber_hash = hashlib.md5(email_lower).hexdigest()
+
+    url = f"{MAILCHIMP_API_URL}/lists/{MAILCHIMP_AUDIENCE_ID}/members/{subscriber_hash}"
+
+    data = {
+        "status": "unsubscribed"
+    }
+
+    response = requests.patch(
+        url,
+        auth=("anystring", MAILCHIMP_API_KEY),
+        json=data
+    )
+
+    return response
+
+def add_top_links():
+    """
+    Adds horizontal navigation links: Portfolio, Blog, and Email Updates.
+    """
+    # Create three equal columns for the links
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown('[**My Portfolio**](https://jesse-anderson.net/)')
+    with col2:
+        st.markdown('[**My Blog**](https://blog.jesse-anderson.net/)')
+    with col3:
+        # Email Updates link pointing to the email updates section
+        st.markdown('[**📧 Email Updates**](#email-updates)')
+
 def add_email_subscription():
     """
-    Provides a form for users to subscribe to email updates via Mailchimp.
+    Displays subscription and unsubscription forms at the bottom of the page.
+    The forms are within a collapsed expander that the user can expand manually.
     """
-    st.sidebar.markdown("## Subscribe to Email Updates")
-    with st.sidebar.form("email_subscription_form"):
-        email = st.text_input("Enter your email address:")
-        submit_button = st.form_submit_button("Subscribe")
+    # Add an anchor to scroll to
+    st.markdown('<a id="email-updates"></a>', unsafe_allow_html=True)
+    
+    # **3. Implement Email Updates within a Collapsed Expander**
+    with st.expander("📧 Email Updates", expanded=False):
+        st.markdown("### Subscribe to Email Updates")
+        with st.form("email_subscription_form"):
+            subscribe_email_input = st.text_input("Enter your email address to subscribe:")
+            subscribe_submit = st.form_submit_button("Subscribe")
 
-        if submit_button:
-            if validate_email(email):
-                response = subscribe_email(email)
-                if response.status_code == 200:
-                    # Check if the email was already subscribed
-                    response_data = response.json()
-                    if response_data["status"] == "subscribed":
-                        st.sidebar.success("Subscription successful! You've been added to the email list.")
+            if subscribe_submit:
+                if validate_email(subscribe_email_input):
+                    response = subscribe_email(subscribe_email_input)
+                    if response.status_code == 200:
+                        # Check if the email was already subscribed
+                        response_data = response.json()
+                        status = response_data.get("status")
+                        if status == "subscribed":
+                            # Check if the 'previous_status' was 'unsubscribed' to provide accurate feedback
+                            previous_status = response_data.get("status_if_new")
+                            if previous_status == "subscribed":
+                                st.success("Subscription successful! You've been added to the email list.")
+                            else:
+                                st.success("Subscription successful! You've been resubscribed to the email list.")
+                        else:
+                            st.info("You are already subscribed.")
                     else:
-                        st.sidebar.info("You are already subscribed.")
+                        # Handle errors
+                        error_message = response.json().get('detail', 'An error occurred.')
+                        st.error(f"Subscription failed: {error_message}")
                 else:
-                    # Handle errors
-                    error_message = response.json().get('detail', 'An error occurred.')
-                    st.sidebar.error(f"Subscription failed: {error_message}")
-            else:
-                st.sidebar.error("Please enter a valid email address.")
+                    st.error("Please enter a valid email address.")
+
+        st.markdown("---")  # Separator
+
+        st.markdown("### Unsubscribe from Email Updates")
+        with st.form("email_unsubscription_form"):
+            unsubscribe_email_input = st.text_input("Enter your email address to unsubscribe:")
+            unsubscribe_submit = st.form_submit_button("Unsubscribe")
+
+            if unsubscribe_submit:
+                if validate_email(unsubscribe_email_input):
+                    response = unsubscribe_email(unsubscribe_email_input)
+                    if response.status_code == 200:
+                        response_data = response.json()
+                        status = response_data.get("status")
+                        if status == "unsubscribed":
+                            st.success("You have been unsubscribed successfully.")
+                        else:
+                            st.info("Your email was not found in our list.")
+                    else:
+                        # Handle errors
+                        error_message = response.json().get('detail', 'An error occurred.')
+                        st.error(f"Unsubscription failed: {error_message}")
+                else:
+                    st.error("Please enter a valid email address.")
+
 def main_app():
     """
     The main body of the application: date filters, offense filter, map, etc.
     """
-    st.set_page_config(page_title="Oak Park Crime", layout="wide")
 
-    # Links at the top for portfolio / blog
-    st.markdown(
-        """
-        [**My Portfolio**](https://jesse-anderson.net/) | [**My Blog**](https://blog.jesse-anderson.net/)
-        """,
-        unsafe_allow_html=True
-    )
+    # # Links at the top for portfolio / blog
+    # st.markdown(
+    #     """
+    #     [**My Portfolio**](https://jesse-anderson.net/) | [**My Blog**](https://blog.jesse-anderson.net/)
+    #     """,
+    #     unsafe_allow_html=True
+    # )
 
     st.title("Oak Park Crime Map")
 
@@ -244,9 +319,9 @@ def main_app():
 
             popup_html = f"""
             <b>Complaint #:</b> {complaint}<br/>
-            <details>
+            <b>Offense:</b> {offense_val}<br/>
+              <details>
               <summary>View Details</summary>
-              <b>Offense:</b> {offense_val}<br/>
               <b>Date:</b> {date_str}<br/>
               <b>Time:</b> {time_val}<br/>
               <b>Location:</b> {location}<br/>
@@ -272,7 +347,16 @@ def main():
     if not st.session_state["user_agreed"]:
         show_disclaimer()
     else:
+        # Set the page layout to wide
+        st.set_page_config(page_title="Oak Park Crime", layout="wide")
+
+        # Add horizontal navigation links at the top
+        add_top_links()
+
+        # Proceed with the main application
         main_app()
 
+        # Add Email Updates section at the bottom
+        add_email_subscription()
 if __name__ == "__main__":
     main()
