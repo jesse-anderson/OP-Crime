@@ -120,12 +120,20 @@ def add_top_links():
     Adds horizontal navigation links: Portfolio, Blog, and Email Updates.
     """
     # Create three equal columns for the links
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3,col4,col5 = st.columns(5)
     with col1:
-        st.markdown('[**My Portfolio**](https://jesse-anderson.net/)')
+        st.markdown('[**Portfolio**](https://jesse-anderson.net/)',
+        unsafe_allow_html=True)
     with col2:
-        st.markdown('[**My Blog**](https://blog.jesse-anderson.net/)')
+        st.markdown('[**Blog**](https://blog.jesse-anderson.net/)',
+        unsafe_allow_html=True)
     with col3:
+        st.markdown('[**Documentation**](https://blog.jesse-anderson.net/)',
+        unsafe_allow_html=True)
+    with col4:
+        st.markdown('[**Contact**](mailto:jesse@jesse-anderson.net?subject=Inquiry%20from%20Oak%20Park%20Crime%20Map%20App&body=Hello%20Jesse,%0A%0A)',
+        unsafe_allow_html=True)
+    with col5:
         # Email Updates link pointing to the email updates section
         st.markdown('[**📧 Email Updates**](#email-updates)')
 
@@ -155,9 +163,9 @@ def add_email_subscription():
                             # Check if the 'previous_status' was 'unsubscribed' to provide accurate feedback
                             previous_status = response_data.get("status_if_new")
                             if previous_status == "subscribed":
-                                st.success("Subscription successful! You've been added to the email list.")
-                            else:
                                 st.success("Subscription successful! You've been resubscribed to the email list.")
+                            else:
+                                st.success("Subscription successful! You've been added to the email list.")
                         else:
                             st.info("You are already subscribed.")
                     else:
@@ -190,6 +198,17 @@ def add_email_subscription():
                         st.error(f"Unsubscription failed: {error_message}")
                 else:
                     st.error("Please enter a valid email address.")
+
+def extract_year(filename, start_year=2017, end_year=2030):
+    """
+    Extracts a four-digit year from the filename.
+    Returns the year as a string if found and within the range.
+    Returns None otherwise.
+    """
+    match = re.search(r'(20[1][7-9]|20[2][0-9]|2030)', filename)
+    if match:
+        return match.group(0)
+    return None
 
 def main_app():
     """
@@ -299,6 +318,8 @@ def main_app():
     if total_recs > 2000:
         st.info(f"There are {total_recs} matching records. Showing only the first 2,000.")
         final_df = final_df.iloc[:2000]
+    
+    base_url_static = 'https://www.oak-park.us/sites/default/files/police/summaries/'
 
     with col_map:
         st.write(f"**Displaying {len(final_df)} records on the map**.")
@@ -316,19 +337,30 @@ def main_app():
             location    = safe_field(row.get('Location'))
             victim      = safe_field(row.get('Victim/Address'))
             narrative   = safe_field(row.get('Narrative'))
+            filename = safe_field(row.get('File Name'))
+            # Extract the year from the filename
+            year = extract_year(filename)
+            if year:
+                base_url = f"{base_url_static}{year}/"
+                link = f"{base_url}{filename}"
+            else:
+                # Handle cases where the year isn't found or is out of range
+                link = "#"
+                st.warning(f"Year not found or out of range in filename: {filename}")
 
             popup_html = f"""
             <b>Complaint #:</b> {complaint}<br/>
             <b>Offense:</b> {offense_val}<br/>
-              <details>
-              <summary>View Details</summary>
+            <details>
+              <summary><b>View Details</b></summary>
               <b>Date:</b> {date_str}<br/>
               <b>Time:</b> {time_val}<br/>
               <b>Location:</b> {location}<br/>
               <b>Victim:</b> {victim}<br/>
               <b>Narrative:</b> {narrative}<br/>
+              <b>URL:</b> <a href="{link}" target="_blank">PDF Link</a>
             </details>
-            """
+        """
 
             folium.Marker(
                 location=[row['Lat'], row['Long']],
