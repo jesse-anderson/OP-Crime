@@ -668,7 +668,8 @@ def main_report_generation():
     cumulative_map_output_path = map_dir / cumulative_map_output_filename
 
     # Local GitHub Pages folder
-    github_repo_path = Path(r'C:\Users\Jesse\Documents\GitHub\jesse-anderson.github.io')
+    github_repo_path = os.getenv("GITHUB_REPO")
+    github_repo_path = Path(github_repo_path)
 
     # (C) Load data
     try:
@@ -781,8 +782,8 @@ def main_report_generation():
         # (K) Load Recipients
         try:
             # to_list = load_recipients_list(recipients_csv)
-            to_list = get_mailchimp_subscribers()
-            # to_list = ["jander98@illinois.edu"]
+            # to_list = get_mailchimp_subscribers()
+            to_list = ["jander98@illinois.edu"]
         except FileNotFoundError as e:
             logging.error(f"Error loading recipients: {e}")
             print(f"[ERROR] {e}")
