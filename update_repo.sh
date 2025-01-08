@@ -10,4 +10,4 @@ git reset --hard
 git pull origin main
 
 # Log the update and script execution
-echo "$(date): Repository updated and scripts executed successfully." >> ~/Desktop/OP-Crime/update.log
+echo "$(date): Repository updated and scripts executed successfully." >> /home/pi/Desktop/logs/update_repo.log
