@@ -25,7 +25,8 @@ from utils import (
     clean_text,
     get_lat_long,
     get_api_call_count,
-    extract_year
+    extract_year,
+    git_commit_and_push
 )
 
 # Ensure you've downloaded stopwords once:
@@ -349,6 +350,11 @@ def main():
         print(counter)
 
     print("Finished processing.")
+
+    # Commit and push changes
+    commit_message = f"Automated update on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    github_repo_path = Path(os.getenv("GITHUB_REPO_OP_CRIME"))
+    git_commit_and_push(github_repo_path, commit_message)
 
 if __name__ == '__main__':
     # Configure logging

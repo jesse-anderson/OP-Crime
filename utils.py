@@ -737,3 +737,197 @@ def upload_files_to_github_batch(file_paths, github_repo_path, target_subfolder)
     except Exception as e:
         logging.error(f"Failed to upload files to GitHub: {e}")
         print(f"[ERROR] Could not upload files to GitHub: {e}")
+
+
+def git_commit_and_push(repo_path, commit_message):
+    """
+    Stages all changes, commits with the provided message, and pushes to the remote repository
+    using a Personal Access Token (PAT) for authentication. Handles non-fast-forward errors
+    by pulling remote changes and retrying the push.
+    
+    Args:
+        repo_path (Path): Path to the local Git repository.
+        commit_message (str): Commit message.
+    """
+    try:
+        # Load PAT from environment variable
+        github_pat = os.getenv("GITHUB_PAT")
+        if not github_pat:
+            logging.error("GITHUB_PAT not found in environment variables.")
+            print("Error: GITHUB_PAT not found in environment variables.")
+            return
+
+        # Verify that repo_path exists and is a directory
+        if not repo_path.exists() or not repo_path.is_dir():
+            logging.error(f"Repository path '{repo_path}' does not exist or is not a directory.")
+            print(f"Error: Repository path '{repo_path}' does not exist or is not a directory.")
+            return
+
+        # Get the original remote URL
+        original_remote = subprocess.run(
+            ['git', '-C', str(repo_path), 'remote', 'get-url', 'origin'],
+            capture_output=True, text=True, check=True
+        )
+        original_remote_url = original_remote.stdout.strip()
+        logging.debug(f"Original remote URL: {original_remote_url}")
+        print("Original remote URL retrieved.")
+
+        # Modify the remote URL to include the PAT
+        if original_remote_url.startswith("https://"):
+            # Insert PAT into the remote URL
+            # Handle potential 'https://username@...' formats
+            remote_with_pat = re.sub(r'^https://', f'https://{github_pat}@', original_remote_url)
+        else:
+            logging.error("Remote URL is not HTTPS. Cannot embed PAT.")
+            print("Error: Remote URL is not HTTPS. Cannot embed PAT.")
+            return
+
+        # Set the remote URL with PAT
+        subprocess.run(
+            ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', remote_with_pat],
+            capture_output=True, text=True, check=True
+        )
+        logging.debug("Remote URL updated with PAT.")
+        print("Remote URL updated with PAT.")
+
+        # Check git status before staging
+        pre_add_status = subprocess.run(
+            ['git', '-C', str(repo_path), 'status'],
+            capture_output=True, text=True
+        )
+        logging.debug(f"Git status before adding:\n{pre_add_status.stdout}")
+        print(f"Git status before adding:\n{pre_add_status.stdout}")
+
+        # Stage all changes
+        # Using 'git add -A' to ensure all changes (including deletions) are staged
+        subprocess.run(
+            ['git', '-C', str(repo_path), 'add', '-A'],
+            capture_output=True, text=True, check=True
+        )
+        logging.info("Staged all changes.")
+        print("Staged all changes.")
+
+        # Check git status after staging
+        post_add_status = subprocess.run(
+            ['git', '-C', str(repo_path), 'status'],
+            capture_output=True, text=True
+        )
+        logging.debug(f"Git status after adding:\n{post_add_status.stdout}")
+        print(f"Git status after adding:\n{post_add_status.stdout}")
+
+        # Check if there are any changes to commit
+        status_result = subprocess.run(
+            ['git', '-C', str(repo_path), 'status', '--porcelain'],
+            capture_output=True, text=True, check=True
+        )
+        if not status_result.stdout.strip():
+            logging.info("No changes to commit.")
+            print("No changes to commit.")
+            # Restore the original remote URL before exiting
+            subprocess.run(
+                ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
+                capture_output=True, text=True, check=True
+            )
+            logging.debug("Restored original remote URL.")
+            print("Restored original remote URL.")
+            return
+
+        # Commit changes
+        commit_result = subprocess.run(
+            ['git', '-C', str(repo_path), 'commit', '-m', commit_message],
+            capture_output=True, text=True
+        )
+        if commit_result.returncode == 0:
+            logging.info(f"Committed changes with message: '{commit_message}'.")
+            print(f"Committed changes with message: '{commit_message}'.")
+        else:
+            logging.error(f"Commit failed: {commit_result.stderr}")
+            print(f"Error: Commit failed: {commit_result.stderr}")
+            # Restore the original remote URL before exiting
+            subprocess.run(
+                ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
+                capture_output=True, text=True, check=True
+            )
+            logging.debug("Restored original remote URL.")
+            print("Restored original remote URL.")
+            return
+
+        # Confirm commit
+        last_commit = subprocess.run(
+            ['git', '-C', str(repo_path), 'log', '-1', '--pretty=%B'],
+            capture_output=True, text=True, check=True
+        )
+        logging.debug(f"Last commit message: {last_commit.stdout.strip()}")
+        print(f"Last commit message: {last_commit.stdout.strip()}")
+
+        # Attempt to push changes
+        push_result = subprocess.run(
+            ['git', '-C', str(repo_path), 'push', 'origin', 'main'],  # Change 'main' if your branch is different
+            capture_output=True, text=True
+        )
+
+        if push_result.returncode == 0:
+            logging.info("Pushed changes to remote repository.")
+            print("Pushed changes to remote repository.")
+        else:
+            # Check if the error is a non-fast-forward error
+            if "non-fast-forward" in push_result.stderr:
+                logging.warning("Push failed due to non-fast-forward. Attempting to pull and retry push.")
+                print("Push failed due to non-fast-forward. Attempting to pull and retry push.")
+
+                # Pull remote changes with rebase to avoid unnecessary merge commits
+                pull_result = subprocess.run(
+                    ['git', '-C', str(repo_path), 'pull', 'origin', 'main', '--rebase'],  # Change 'main' if needed
+                    capture_output=True, text=True
+                )
+
+                if pull_result.returncode == 0:
+                    logging.info("Pulled remote changes successfully.")
+                    print("Pulled remote changes successfully.")
+
+                    # Retry pushing changes
+                    retry_push = subprocess.run(
+                        ['git', '-C', str(repo_path), 'push', 'origin', 'main'],  # Change 'main' if needed
+                        capture_output=True, text=True
+                    )
+
+                    if retry_push.returncode == 0:
+                        logging.info("Pushed changes to remote repository after pulling.")
+                        print("Pushed changes to remote repository after pulling.")
+                    else:
+                        logging.error(f"Retry push failed: {retry_push.stderr}")
+                        print(f"Error: Retry push failed: {retry_push.stderr}")
+                else:
+                    logging.error(f"Pull failed: {pull_result.stderr}")
+                    print(f"Error: Pull failed: {pull_result.stderr}")
+
+                    # Optional: Force push (use with caution)
+                    user_input = input("Do you want to force push and overwrite remote changes? (y/N): ").strip().lower()
+                    if user_input == 'y':
+                        force_push = subprocess.run(
+                            ['git', '-C', str(repo_path), 'push', 'origin', 'main', '--force'],
+                            capture_output=True, text=True
+                        )
+                        if force_push.returncode == 0:
+                            logging.info("Force pushed changes to remote repository.")
+                            print("Force pushed changes to remote repository.")
+                        else:
+                            logging.error(f"Force push failed: {force_push.stderr}")
+                            print(f"Error: Force push failed: {force_push.stderr}")
+                    else:
+                        logging.warning("Force push aborted by user.")
+                        print("Force push aborted by user.")
+            else:
+                # Other push errors
+                logging.error(f"Push failed: {push_result.stderr}")
+                print(f"Error: Push failed: {push_result.stderr}")
+
+        # Restore the original remote URL to avoid exposing the PAT
+        subprocess.run(
+            ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
+            capture_output=True, text=True, check=True
+        )
+        logging.debug("Restored original remote URL.")
+        print("Restored original remote URL.")
+    except Exception as e:
+        print(f"Error: {e}")
