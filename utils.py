@@ -20,6 +20,7 @@ import zipfile
 import subprocess
 import shutil
 from datetime import datetime, timedelta
+import base64
 
 # Initialize the API call counter
 api_call_count = 0  # Global counter for API calls
@@ -633,261 +634,106 @@ def extract_year(filename, start_year=2017, end_year=2030):
         return match.group(0)
     return None
 
-def has_changes(repo_dir, relative_path):
+def get_file_sha(repo_owner, repo_name, file_path, github_pat):
     """
-    Checks if there are any changes (modified or untracked) for the given path.
-    
+    Checks if a file exists in the repository and returns its SHA if it does.
+
     Args:
-        repo_dir (Path): Path to the Git repository.
-        relative_path (Path): Relative path within the repository to check.
-    
+        repo_owner (str): GitHub username or organization.
+        repo_name (str): Repository name.
+        file_path (str): Path to the file within the repository.
+        github_pat (str): Personal Access Token for authentication.
+
     Returns:
-        bool: True if there are changes, False otherwise.
+        str or None: SHA of the file if it exists, else None.
     """
-    try:
-        logging.debug(f"Checking for changes in {relative_path} within repository {repo_dir}.")
-        status_result = subprocess.run(
-            ['git', '-C', str(repo_dir), 'status', '--porcelain', '--', str(relative_path)],
-            capture_output=True, text=True
-        )
-        logging.debug(f"Git status output: {status_result.stdout}")
-        logging.debug(f"Git status return code: {status_result.returncode}")
-        
-        if status_result.returncode != 0:
-            logging.error(f"Git status command failed: {status_result.stderr}")
-            print(f"[ERROR] Git status command failed: {status_result.stderr}")
-            return False
-        
-        # If there's any output, there are changes
-        changes_detected = bool(status_result.stdout.strip())
-        logging.debug(f"Changes detected: {changes_detected}")
-        return changes_detected
-    except Exception as e:
-        logging.error(f"Exception occurred while checking changes: {e}")
-        print(f"[ERROR] Exception occurred while checking changes: {e}")
-        return False
+    api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
+    headers = {"Authorization": f"token {github_pat}"}
+    
+    response = requests.get(api_url, headers=headers)
+    
+    if response.status_code == 200:
+        file_info = response.json()
+        return file_info.get('sha')
+    elif response.status_code == 404:
+        return None
+    else:
+        logging.error(f"Failed to check file existence: {response.status_code} - {response.text}")
+        print(f"[ERROR] Failed to check file existence: {response.status_code} - {response.text}")
+        return None
 
 def upload_file_to_github(file_path, github_repo_path, target_subfolder):
     """
-    Uploads a specified file to a target subfolder within the GitHub repository,
-    commits the change with a descriptive message only if the file has changed,
-    and pushes it to GitHub.
+    Uploads a specified file to a target subfolder within the GitHub repository
+    using the GitHub API and Personal Access Token (PAT).
 
     Args:
         file_path (Path): Path to the file to upload.
-        github_repo_path (Path): Path to the local GitHub repository.
+        github_repo_path (Path): Path to the local GitHub repository (not used in API method).
         target_subfolder (str): Subfolder within the repository where the file will be placed.
     """
     try:
-        logging.info(f"Starting upload for file: {file_path}")
-        print(f"Starting upload for file: {file_path}")
+        GITHUB_PAT = os.getenv("GITHUB_PAT")
+        if not GITHUB_PAT:
+            raise ValueError("GITHUB_PAT not found in environment variables.")
 
-        # Define target directory and ensure it exists
-        target_dir = github_repo_path / target_subfolder
-        target_dir.mkdir(parents=True, exist_ok=True)
-        logging.debug(f"Ensured target directory exists: {target_dir}")
-        print(f"Ensured target directory exists: {target_dir}")
+        repo_owner = "jesse-anderson"  # Replace with your GitHub username or organization
+        repo_name = "jesse-anderson.github.io"  # Replace with your repository name
 
-        target_path = target_dir / file_path.name
+        # Define target path within the repository
+        target_path = f"{target_subfolder}/{file_path.name}"
 
-        # Copy the file to the target directory
-        shutil.copy(file_path, target_path)
-        logging.info(f"Copied {file_path} to {target_path}")
-        print(f"Copied {file_path} to {target_path}")
+        # Check if the file already exists to determine if it's an update or create operation
+        existing_sha = get_file_sha(repo_owner, repo_name, target_path, GITHUB_PAT)
 
-        repo_dir = github_repo_path
+        with open(file_path, 'rb') as f:
+            content = f.read()
 
-        # Relative path from the repo root
-        relative_path = target_path.relative_to(repo_dir)
-        logging.debug(f"Relative path for Git operations: {relative_path}")
-        print(f"Relative path for Git operations: {relative_path}")
+        encoded_content = base64.b64encode(content).decode('utf-8')
 
-        # Check if the file has changes (including new files)
-        if not has_changes(repo_dir, relative_path):
-            logging.info(f"No changes detected for {relative_path}, skipping commit.")
-            print(f"No changes detected for {relative_path}, skipping commit.")
-            return
+        commit_message = f"Add {'update' if existing_sha else 'new'} file {file_path.name} on {datetime.now().strftime('%Y-%m-%d')}"
+
+        data = {
+            "message": commit_message,
+            "content": encoded_content,
+            "branch": "main"
+        }
+
+        if existing_sha:
+            data["sha"] = existing_sha  # Include sha if updating an existing file
+
+        api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{target_path}"
+        headers = {"Authorization": f"token {GITHUB_PAT}"}
+
+        response = requests.put(api_url, json=data, headers=headers)
+
+        if response.status_code in [200, 201]:
+            action = "updated" if existing_sha else "created"
+            logging.info(f"Successfully {action} {file_path.name} to GitHub.")
+            print(f"Successfully {action} {file_path.name} to GitHub.")
         else:
-            logging.info(f"Changes detected for {relative_path}, preparing to commit.")
-            print(f"Changes detected for {relative_path}, preparing to commit.")
+            logging.error(f"Failed to upload {file_path.name} to GitHub. Status Code: {response.status_code}")
+            print(f"Failed to upload {file_path.name} to GitHub. Status Code: {response.status_code}")
+            print(response.json())
 
-        # Stage the file
-        logging.debug(f"Staging file: {relative_path}")
-        add_result = subprocess.run(
-            ['git', '-C', str(repo_dir), 'add', str(relative_path)],
-            capture_output=True, text=True
-        )
-        logging.debug(f"Git add stdout: {add_result.stdout}")
-        logging.debug(f"Git add stderr: {add_result.stderr}")
-        logging.debug(f"Git add return code: {add_result.returncode}")
-        
-        if add_result.returncode != 0:
-            logging.error(f"Git add failed for {relative_path}: {add_result.stderr}")
-            print(f"[ERROR] Git add failed for {relative_path}: {add_result.stderr}")
-            return
-        else:
-            logging.info(f"Successfully staged {relative_path}")
-            print(f"Successfully staged {relative_path}")
-
-        # Create a commit message
-        commit_message = f"Add {file_path.suffix[1:].upper()} file {file_path.name} on {datetime.now().strftime('%Y-%m-%d')}"
-        logging.debug(f"Commit message: {commit_message}")
-
-        # Commit the changes
-        logging.debug(f"Committing changes for {relative_path}")
-        commit_result = subprocess.run(
-            ['git', '-C', str(repo_dir), 'commit', '-m', commit_message],
-            capture_output=True, text=True
-        )
-        logging.debug(f"Git commit stdout: {commit_result.stdout}")
-        logging.debug(f"Git commit stderr: {commit_result.stderr}")
-        logging.debug(f"Git commit return code: {commit_result.returncode}")
-
-        if commit_result.returncode == 0:
-            logging.info(f"Successfully committed {relative_path}")
-            print(f"Successfully committed {relative_path}")
-        elif "nothing to commit" in commit_result.stderr.lower():
-            logging.info(f"No changes to commit for {relative_path}")
-            print(f"No changes to commit for {relative_path}")
-            return
-        else:
-            logging.error(f"Git commit failed for {relative_path}: {commit_result.stderr}")
-            print(f"[ERROR] Git commit failed for {relative_path}: {commit_result.stderr}")
-            return
-
-        # Push the commit to GitHub
-        logging.debug(f"Pushing commit to GitHub for {relative_path}")
-        push_result = subprocess.run(
-            ['git', '-C', str(repo_dir), 'push'],
-            capture_output=True, text=True
-        )
-        logging.debug(f"Git push stdout: {push_result.stdout}")
-        logging.debug(f"Git push stderr: {push_result.stderr}")
-        logging.debug(f"Git push return code: {push_result.returncode}")
-
-        if push_result.returncode == 0:
-            logging.info(f"Successfully pushed {relative_path} to GitHub in folder '{target_subfolder}'.")
-            print(f"Successfully pushed {relative_path} to GitHub in folder '{target_subfolder}'.")
-        else:
-            logging.error(f"Git push failed for {relative_path}: {push_result.stderr}")
-            print(f"[ERROR] Git push failed for {relative_path}: {push_result.stderr}")
-
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Git command failed while uploading {file_path.name}: {e}")
-        print(f"[ERROR] Git command failed while uploading {file_path.name}: {e}")
     except Exception as e:
         logging.error(f"Failed to upload {file_path.name} to GitHub: {e}")
         print(f"[ERROR] Could not upload {file_path.name} to GitHub: {e}")
 
 def upload_files_to_github_batch(file_paths, github_repo_path, target_subfolder):
     """
-    Uploads multiple files to a target subfolder within the GitHub repository,
-    commits the changes with a descriptive message only if there are changes,
-    and pushes them to GitHub.
-
-    Args:
-        file_paths (list of Path): Paths to the files to upload.
-        github_repo_path (Path): Path to the local GitHub repository.
-        target_subfolder (str): Subfolder within the repository where the files will be placed.
+    Uploads multiple files to a target subfolder within the GitHub repository
+    using the GitHub API and Personal Access Token (PAT).
     """
     try:
         logging.info(f"Starting batch upload for files: {[str(fp) for fp in file_paths]}")
         print(f"Starting batch upload for files: {[str(fp) for fp in file_paths]}")
 
         # Define target directory and ensure it exists
-        target_dir = github_repo_path / target_subfolder
-        target_dir.mkdir(parents=True, exist_ok=True)
-        logging.debug(f"Ensured target directory exists: {target_dir}")
-        print(f"Ensured target directory exists: {target_dir}")
-
-        # Copy all files to the target directory
+        target_dir = Path(target_subfolder)
         for file_path in file_paths:
-            target_path = target_dir / file_path.name
-            shutil.copy(file_path, target_path)
-            logging.info(f"Copied {file_path} to {target_path}")
-            print(f"Copied {file_path} to {target_path}")
+            upload_file_to_github(file_path, github_repo_path, target_subfolder)
 
-        repo_dir = github_repo_path
-
-        # Relative path from the repo root
-        relative_subfolder = target_dir.relative_to(repo_dir)
-        logging.debug(f"Relative subfolder for Git operations: {relative_subfolder}")
-        print(f"Relative subfolder for Git operations: {relative_subfolder}")
-
-        # Check if there are any changes in the target subfolder
-        if not has_changes(repo_dir, relative_subfolder):
-            # No changes detected
-            logging.info(f"No changes detected in '{target_subfolder}', skipping commit and push.")
-            print(f"No changes detected in '{target_subfolder}', skipping commit and push.")
-            return
-        else:
-            logging.info(f"Changes detected in '{target_subfolder}', preparing to commit and push.")
-            print(f"Changes detected in '{target_subfolder}', preparing to commit and push.")
-
-        # Stage all changes in the target subfolder (including new files)
-        logging.debug(f"Staging all changes in subfolder: {relative_subfolder}")
-        add_result = subprocess.run(
-            ['git', '-C', str(repo_dir), 'add', str(relative_subfolder)],
-            capture_output=True, text=True
-        )
-        logging.debug(f"Git add stdout: {add_result.stdout}")
-        logging.debug(f"Git add stderr: {add_result.stderr}")
-        logging.debug(f"Git add return code: {add_result.returncode}")
-
-        if add_result.returncode != 0:
-            logging.error(f"Git add failed for '{target_subfolder}': {add_result.stderr}")
-            print(f"[ERROR] Git add failed for '{target_subfolder}': {add_result.stderr}")
-            return
-        else:
-            logging.info(f"Successfully staged changes in '{relative_subfolder}'.")
-            print(f"Successfully staged changes in '{relative_subfolder}'.")
-
-        # Create a commit message
-        commit_message = f"Update files in {target_subfolder} on {datetime.now().strftime('%Y-%m-%d')}"
-        logging.debug(f"Commit message: {commit_message}")
-
-        # Commit the changes
-        logging.debug(f"Committing changes in '{relative_subfolder}'.")
-        commit_result = subprocess.run(
-            ['git', '-C', str(repo_dir), 'commit', '-m', commit_message],
-            capture_output=True, text=True
-        )
-        logging.debug(f"Git commit stdout: {commit_result.stdout}")
-        logging.debug(f"Git commit stderr: {commit_result.stderr}")
-        logging.debug(f"Git commit return code: {commit_result.returncode}")
-
-        if commit_result.returncode == 0:
-            logging.info(f"Successfully committed changes in '{target_subfolder}'.")
-            print(f"Successfully committed changes in '{target_subfolder}'.")
-        elif "nothing to commit" in commit_result.stderr.lower():
-            logging.info(f"No changes to commit for '{target_subfolder}'.")
-            print(f"No changes to commit for '{target_subfolder}'.")
-            return
-        else:
-            logging.error(f"Git commit failed for '{target_subfolder}': {commit_result.stderr}")
-            print(f"[ERROR] Git commit failed for '{target_subfolder}': {commit_result.stderr}")
-            return
-
-        # Push the commit to GitHub
-        logging.debug(f"Pushing commit to GitHub for '{target_subfolder}'.")
-        push_result = subprocess.run(
-            ['git', '-C', str(repo_dir), 'push'],
-            capture_output=True, text=True
-        )
-        logging.debug(f"Git push stdout: {push_result.stdout}")
-        logging.debug(f"Git push stderr: {push_result.stderr}")
-        logging.debug(f"Git push return code: {push_result.returncode}")
-
-        if push_result.returncode == 0:
-            logging.info(f"Successfully pushed changes in '{target_subfolder}' to GitHub.")
-            print(f"Successfully pushed changes in '{target_subfolder}' to GitHub.")
-        else:
-            logging.error(f"Git push failed for '{target_subfolder}': {push_result.stderr}")
-            print(f"[ERROR] Git push failed for '{target_subfolder}': {push_result.stderr}")
-
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Git command failed while uploading files to '{target_subfolder}': {e}")
-        print(f"[ERROR] Git command failed while uploading files to '{target_subfolder}': {e}")
     except Exception as e:
         logging.error(f"Failed to upload files to GitHub: {e}")
         print(f"[ERROR] Could not upload files to GitHub: {e}")
