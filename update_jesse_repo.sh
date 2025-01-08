@@ -25,6 +25,9 @@ update_repo() {
     fi
     
     # Pull the latest changes
+    # Reset any local changes
+    git reset --hard
+
     git pull origin main >> "$LOG_DIR/update_jesse_repo.log" 2>&1
     
     if [ $? -eq 0 ]; then
