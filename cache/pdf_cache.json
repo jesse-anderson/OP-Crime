@@ -1,4 +1,18 @@
 {
+  "weekend_summary_report_03january2025_-_06january2025.pdf": {
+    "complaints": [
+      "25-00026",
+      "25-00033",
+      "24-01172",
+      "25-00040",
+      "25-00055",
+      "25-00062",
+      "25-00061"
+    ],
+    "all_error_free": true,
+    "file_size": 32783,
+    "last_modified": 1736192988.0616913
+  },
   "summary_report_03-january-2025.pdf": {
     "complaints": [
       "25-00018"
@@ -15544,18 +15558,15 @@
     "file_size": 31095,
     "last_modified": 1735489754.103692
   },
-  "weekend_summary_report_03january2025_-_06january2025.pdf": {
+  "summary_report_07-january-2025.pdf": {
     "complaints": [
-      "25-00026",
-      "25-00033",
-      "24-01172",
-      "25-00040",
-      "25-00055",
-      "25-00062",
-      "25-00061"
+      "25-00074",
+      "24-06962",
+      "24-06287",
+      "25-00082"
     ],
     "all_error_free": true,
-    "file_size": 32783,
-    "last_modified": 1736192988.0616913
+    "file_size": 30692,
+    "last_modified": 1736360152.0516787
   }
 }

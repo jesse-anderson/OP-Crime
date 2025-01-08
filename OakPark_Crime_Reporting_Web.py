@@ -24,7 +24,8 @@ from utils import (
     parse_date,
     clean_text,
     get_lat_long,
-    get_api_call_count
+    get_api_call_count,
+    extract_year
 )
 
 # Ensure you've downloaded stopwords once:
@@ -353,7 +354,7 @@ if __name__ == '__main__':
     # Configure logging
     script_dir = Path(__file__).parent.resolve()  # Ensure log file is in script directory
     logging.basicConfig(
-        filename=script_dir / 'processing.log',  # Updated to store log in script directory
+        filename=script_dir / f'processing_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}.log',  # Updated to store log in script directory
         level=logging.DEBUG,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )

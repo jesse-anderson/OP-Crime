@@ -12,8 +12,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 import base64
-import shutil
-import subprocess
 import sys
 
 import numpy as np
@@ -28,7 +26,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # Local utility to load env vars
-from utils import load_env_vars
+from utils import load_env_vars,extract_year,upload_file_to_github,upload_files_to_github_batch
 
 # Folium plugins
 from folium.plugins import MarkerCluster
@@ -156,16 +154,7 @@ def safe_field(value):
         return "Not found"
     return str(value)
 
-def extract_year(filename, start_year=2017, end_year=2030):
-    """
-    Extracts a four-digit year from the filename.
-    Returns the year as a string if found and within the range.
-    Returns None otherwise.
-    """
-    match = re.search(r'(20[1][7-9]|20[2][0-9]|2030)', filename)
-    if match:
-        return match.group(0)
-    return None
+
 
 def create_folium_map_filtered_data(
     df,
@@ -198,15 +187,6 @@ def create_folium_map_filtered_data(
         victim = safe_field(row.get('Victim/Address'))
         narrative = safe_field(row.get('Narrative'))
         filename = safe_field(row.get('File Name'))
-        # Extract the year from the filename
-        year = extract_year(filename)
-        if year:
-            base_url = f"{base_url_static}{year}/"
-            link = f"{base_url}{filename}"
-        else:
-            # Handle cases where the year isn't found or is out of range
-            link = "#"
-            st.warning(f"Year not found or out of range in filename: {filename}")
 
         popup_html = f"""
             <b>Complaint #:</b> {complaint}<br/>
@@ -218,7 +198,7 @@ def create_folium_map_filtered_data(
               <b>Location:</b> {location}<br/>
               <b>Victim:</b> {victim}<br/>
               <b>Narrative:</b> {narrative}<br/>
-              <b>URL:</b> <a href="{link}" target="_blank">PDF Link</a>
+              <b>URL:</b> <a href="{filename}" target="_blank">PDF Link</a>
             </details>
         """
 
@@ -237,7 +217,7 @@ def create_folium_map_filtered_data(
     <a href="https://blog.jesse-anderson.net/">My Blog</a> |
     <a href="https://blog.jesse-anderson.net/">Documentation</a> |
     <a href="mailto:jesse@jesse-anderson.net">Contact</a> |
-    <a href="mailto:jesse@jesse-anderson.net?subject=Add%20me%20to%20Weekly%20Updates&body=Hello%20Jesse,%0A%0APlease%20add%20me%20to%20the%20weekly%20updates%20list%20for%20the%20Oak%20Park%20Crime%20Map.%0A%0AThank%20you!">
+    <a href="https://forms.gle/GnyaVwo1Vzm8nBH6A">
         Add me to Weekly Updates
     </a>
     </h3>
@@ -317,6 +297,149 @@ def create_folium_map_filtered_data(
     crime_map.get_root().html.add_child(disclaimers_element)
 
     # 2) Save final HTML
+    crime_map.save(str(output_html_path))
+
+def create_folium_map_cumulative(
+    df,
+    lat_col='Lat',
+    lng_col='Long',
+    offense_col='Offense',
+    date_col='Date',
+    output_html_path='cumulative_map.html'
+):
+    """
+    Creates a Folium map plotting all records in df up to a certain date with disclaimers overlay (JS + HTML) 
+    and saves it to 'output_html_path'.
+    """
+    oak_park_center = [41.885, -87.78]
+    crime_map = folium.Map(location=oak_park_center, zoom_start=11)  # Zoomed out for cumulative view
+
+    marker_cluster = MarkerCluster().add_to(crime_map)
+    # Define the static part of the base URL
+    base_url_static = 'https://www.oak-park.us/sites/default/files/police/summaries/'
+
+    for _, row in df.iterrows():
+        lat = row[lat_col]
+        lng = row[lng_col]
+        offense = row.get(offense_col, "Unknown")
+        complaint = safe_field(row.get('Complaint #'))
+        offense_val = safe_field(offense)
+        date_str = safe_field(row['Date'].strftime('%Y-%m-%d') if pd.notnull(row['Date']) else np.nan)
+        time_val = safe_field(row.get('Time'))
+        location = safe_field(row.get('Location'))
+        victim = safe_field(row.get('Victim/Address'))
+        narrative = safe_field(row.get('Narrative'))
+        filename = safe_field(row.get('File Name'))
+
+        popup_html = f"""
+            <b>Complaint #:</b> {complaint}<br/>
+            <b>Offense:</b> {offense_val}<br/>
+            <details>
+              <summary><b>View Details</b></summary>
+              <b>Date:</b> {date_str}<br/>
+              <b>Time:</b> {time_val}<br/>
+              <b>Location:</b> {location}<br/>
+              <b>Victim:</b> {victim}<br/>
+              <b>Narrative:</b> {narrative}<br/>
+              <b>URL:</b> <a href="{filename}" target="_blank">PDF Link</a>
+            </details>
+        """
+
+        folium.Marker(
+            location=[lat, lng],
+            popup=folium.Popup(popup_html, max_width=300),
+            icon=folium.Icon(color='blue', icon='info-sign')  # Different color for distinction
+        ).add_to(marker_cluster)
+
+    # Basic map title
+    title_html = '''
+    <h3 align="center" style="font-size:20px"><b>Oak Park Cumulative Crime Map</b></h3>
+    <br>
+    <h3 align="center" style="font-size:10px">
+    <a href="https://jesse-anderson.net/">My Portfolio</a> |
+    <a href="https://blog.jesse-anderson.net/">My Blog</a> |
+    <a href="https://blog.jesse-anderson.net/">Documentation</a> |
+    <a href="mailto:jesse@jesse-anderson.net">Contact</a> |
+    <a href="https://forms.gle/GnyaVwo1Vzm8nBH6A">
+        Add me to Weekly Updates
+    </a>
+    </h3>
+'''
+    crime_map.get_root().html.add_child(folium.Element(title_html))
+
+    # Overlays disclaimers in a "splash screen" with JavaScript (reuse existing disclaimer)
+    disclaimers_overlay = """
+    <style>
+    /* Full-page overlay styling */
+    #disclaimerOverlay {
+      position: fixed;
+      z-index: 9999; /* On top of everything */
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.95);
+      color: #333;
+      display: block; /* Visible by default */
+      overflow: auto;
+      text-align: center;
+      padding-top: 100px;
+      font-family: Arial, sans-serif;
+    }
+    #disclaimerContent {
+      background: #f9f9f9;
+      border: 1px solid #ccc;
+      display: inline-block;
+      padding: 20px;
+      max-width: 800px;
+      text-align: left;
+    }
+    #acceptButton {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    </style>
+
+    <div id="disclaimerOverlay">
+      <div id="disclaimerContent">
+        <h2>Important Legal Disclaimer</h2>
+        <p><strong>By using this demonstrative research tool, you acknowledge and agree:</strong></p>
+        <ul>
+            <li>This tool is for <strong>demonstration purposes only</strong>.</li>
+            <li>The data originated from publicly available Oak Park Police Department PDF files.
+                View the official site here: 
+                <a href="https://www.oak-park.us/village-services/police-department"
+                   target="_blank">Oak Park Police Department</a>.</li>
+            <li>During parsing, <strong>~10%</strong> of complaints were <strong>omitted</strong> 
+                due to parsing issues; thus the data is <strong>incomplete</strong>.</li>
+            <li>The <strong>official</strong> and <strong>complete</strong> PDF files remain 
+                with the Oak Park Police Department.</li>
+            <li>You <strong>will not hold</strong> the author <strong>liable</strong> for <strong>any</strong> 
+                decisions—formal or informal—based on this tool.</li>
+            <li>This tool <strong>should not</strong> be used in <strong>any</strong> official or unofficial 
+                <strong>decision-making</strong>.</li>
+        </ul>
+        <p><strong>By continuing, you indicate your acceptance of these terms 
+           and disclaim all liability.</strong></p>
+        <hr/>
+        <button id="acceptButton" onclick="hideOverlay()">I Accept</button>
+      </div>
+    </div>
+
+    <script>
+    function hideOverlay() {
+      var overlay = document.getElementById('disclaimerOverlay');
+      overlay.style.display = 'none'; 
+    }
+    </script>
+    """
+
+    disclaimers_element = folium.Element(disclaimers_overlay)
+    crime_map.get_root().html.add_child(disclaimers_element)
+
+    # Save final HTML
     crime_map.save(str(output_html_path))
 
 
@@ -452,7 +575,13 @@ def send_email_with_disclaimer_and_links(
         The crime report from {body_text['start_date']} to {body_text['end_date']} is attached as a .csv file.
 
         Interactive map:
-        https://jesse-anderson.net/OP-Crime-Maps/{body_text['map_filename']}
+        {body_text['weekly_map_url']}
+
+        Cumulative map:
+        {body_text['cumulative_map_url']}
+        
+        Last week's data:
+        {body_text['csv_url']}
         """
 
         part1 = MIMEText(plain_text, 'plain')
@@ -483,32 +612,6 @@ def send_email_with_disclaimer_and_links(
     except Exception as e:
         logging.error(f"Failed to send email: {e}")
         print(f"[ERROR] Failed to send email: {e}")
-
-
-def upload_map_to_github(map_html_path, github_repo_path):
-    """
-    Copies the generated map HTML to the GitHub repository, commits, and pushes changes.
-    """
-    try:
-        target_path = github_repo_path / 'OP-Crime-Maps' / map_html_path.name
-        (github_repo_path / 'OP-Crime-Maps').mkdir(parents=True, exist_ok=True)
-
-        shutil.copy(map_html_path, target_path)
-        logging.info(f"Copied {map_html_path} to {target_path}")
-
-        repo_dir = github_repo_path
-        subprocess.run(['git', '-C', str(repo_dir), 'add', str(target_path.relative_to(repo_dir))], check=True)
-        commit_message = f"Add crime map {map_html_path.name} on {datetime.now().strftime('%Y-%m-%d')}"
-        subprocess.run(['git', '-C', str(repo_dir), 'commit', '-m', commit_message], check=True)
-        subprocess.run(['git', '-C', str(repo_dir), 'push'], check=True)
-
-        logging.info(f"Successfully pushed {map_html_path.name} to GitHub Pages.")
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Git command failed: {e}")
-        print(f"[ERROR] Git command failed: {e}")
-    except Exception as e:
-        logging.error(f"Failed to upload map to GitHub: {e}")
-        print(f"[ERROR] Could not upload map to GitHub: {e}")
 
 
 #############################################
@@ -546,8 +649,10 @@ def main_report_generation():
 
     data_dir = script_dir / 'data'
     map_dir = script_dir / 'generated_maps'
-    recipients_csv = script_dir / 'recipients.csv'
+    # recipients_csv = script_dir / 'recipients.csv'
+    csv_dir = script_dir / 'generated_csvs'  # New directory for CSVs
     map_dir.mkdir(parents=True, exist_ok=True)
+    csv_dir.mkdir(parents=True, exist_ok=True)
 
     zip_file_path = data_dir / 'summary_report.zip'
 
@@ -556,9 +661,11 @@ def main_report_generation():
 
     # CSV & HTML output
     filtered_subset_filename = f'filtered_subset_{date_str}.csv'
-    filtered_subset_path = data_dir / filtered_subset_filename
-    map_output_filename = f'crime_map_{date_str}.html'
-    map_output_path = map_dir / map_output_filename
+    filtered_subset_path = csv_dir / filtered_subset_filename
+    weekly_map_output_filename = f'crime_map_weekly_{date_str}.html'
+    weekly_map_output_path = map_dir / weekly_map_output_filename
+    cumulative_map_output_filename = f'crime_map_cumulative_{date_str}.html'
+    cumulative_map_output_path = map_dir / cumulative_map_output_filename
 
     # Local GitHub Pages folder
     github_repo_path = Path(r'C:\Users\Jesse\Documents\GitHub\jesse-anderson.github.io')
@@ -607,65 +714,107 @@ def main_report_generation():
             lng_col='Long',
             offense_col='Offense',
             date_col='Date',
-            output_html_path=map_output_path
+            output_html_path=weekly_map_output_path
         )
-        logging.info(f"Folium map created at {map_output_path}")
+        logging.info(f"Folium map created at {weekly_map_output_path}")
     except Exception as e:
         logging.error(f"Error creating Folium map: {e}")
         print(f"[ERROR] Could not create Folium map: {e}")
         return
 
-    # (G) Upload Map
     try:
-        upload_map_to_github(map_output_path, github_repo_path)
-    except Exception as e:
-        logging.error(f"Failed to upload map to GitHub: {e}")
-        print(f"[ERROR] Could not upload map to GitHub: {e}")
-        return
-
-    # (H) Gmail API & Email
-    try:
-        service = get_gmail_service()
-        if not service:
-            raise Exception("Failed to create Gmail service.")
-    except Exception as e:
-        logging.error(f"Authentication failed: {e}")
-        print(f"[ERROR] Authentication failed: {e}")
-        return
-
-    # (I) Load Recipients
-    try:
-        to_list = load_recipients_list(recipients_csv)
-    except FileNotFoundError as e:
-        logging.error(f"Error loading recipients: {e}")
-        print(f"[ERROR] {e}")
-        return
-
-    if not to_list:
-        logging.warning("No recipients found—cannot send email.")
-        print("No recipients found in recipients.csv—cannot send email.")
-        return
-
-    subject = f"Crime Report from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
-    body_text = {
-        'start_date': start_date.strftime('%Y-%m-%d'),
-        'end_date': end_date.strftime('%Y-%m-%d'),
-        'map_filename': map_output_filename
-    }
-    attachments = [filtered_subset_path]
-
-    try:
-        send_email_with_disclaimer_and_links(
-            service=service,
-            sender_email=sender_email,
-            to_emails=to_list,
-            subject=subject,
-            body_text=body_text,
-            attachments=attachments
+        create_folium_map_cumulative(
+            df=df_full,  # Use the full dataset for cumulative map
+            lat_col='Lat',
+            lng_col='Long',
+            offense_col='Offense',
+            date_col='Date',
+            output_html_path=cumulative_map_output_path
         )
+        logging.info(f"Cumulative Folium map created at {cumulative_map_output_path}")
     except Exception as e:
-        logging.error(f"Failed to send email: {e}")
-        print(f"[ERROR] Could not send email: {e}")
+        logging.error(f"Error creating cumulative Folium map: {e}")
+        print(f"[ERROR] Could not create cumulative Folium map: {e}")
+        return
+    
+    test = False
+    if not test:
+        # (G) Upload Map and csv
+        try:
+            # Upload Maps
+            files_to_upload_maps = [weekly_map_output_path, cumulative_map_output_path]
+            upload_files_to_github_batch(
+                file_paths=files_to_upload_maps,
+                github_repo_path=github_repo_path,
+                target_subfolder='OP-Crime-Maps'
+            )
+            time.sleep(5) #paranoia
+            # Upload CSV
+            files_to_upload_csv = filtered_subset_path
+            upload_file_to_github(
+                file_path=files_to_upload_csv,
+                github_repo_path=github_repo_path,
+                target_subfolder='OP-Crime-Data'
+            )
+        except Exception as e:
+            logging.error(f"Failed to upload files to GitHub: {e}")
+            print(f"[ERROR] Could not upload files to GitHub: {e}")
+            return
+        # (I) Generate GitHub URLs for the uploaded files
+        # Assuming GitHub Pages are served from the root of the repository
+        github_base_url = "https://jesse-anderson.github.io"
+
+        weekly_map_url = f"{github_base_url}/OP-Crime-Maps/{weekly_map_output_filename}"
+        cumulative_map_url = f"{github_base_url}/OP-Crime-Maps/{cumulative_map_output_filename}"
+        csv_url = f"{github_base_url}/OP-Crime-Data/{filtered_subset_filename}"
+
+        # (J) Gmail API & Email
+        try:
+            service = get_gmail_service()
+            if not service:
+                raise Exception("Failed to create Gmail service.")
+        except Exception as e:
+            logging.error(f"Authentication failed: {e}")
+            print(f"[ERROR] Authentication failed: {e}")
+            return
+        time.sleep(60) #time to build github pages....
+        # (K) Load Recipients
+        try:
+            # to_list = load_recipients_list(recipients_csv)
+            to_list = get_mailchimp_subscribers()
+            # to_list = ["jander98@illinois.edu"]
+        except FileNotFoundError as e:
+            logging.error(f"Error loading recipients: {e}")
+            print(f"[ERROR] {e}")
+            return
+
+        if not to_list:
+            logging.warning("No recipients found—cannot send email.")
+            print("No recipients found in recipients.csv—cannot send email.")
+            return
+
+        subject = f"Crime Report from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
+        body_text = {
+            'start_date': start_date.strftime('%Y-%m-%d'),
+            'end_date': end_date.strftime('%Y-%m-%d'),
+            'weekly_map_url': weekly_map_url,
+            'cumulative_map_url': cumulative_map_url,
+            'csv_url': csv_url
+        }
+        attachments = []
+
+        try:
+            send_email_with_disclaimer_and_links(
+                service=service,
+                sender_email=sender_email,
+                to_emails=to_list,
+                subject=subject,
+                body_text=body_text,
+                attachments=attachments
+            )
+        except Exception as e:
+            logging.error(f"Failed to send email: {e}")
+            print(f"[ERROR] Could not send email: {e}")
 
     end_time = time.time()
     elapsed_sec = end_time - start_time
