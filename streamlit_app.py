@@ -30,7 +30,7 @@ def load_data():
     Reads 'summary_report.zip' once, caching the DataFrame in memory.
     This prevents re-reading the file on every app rerun.
     """
-    df = pd.read_csv("summary_report.zip", compression="zip", encoding="cp1252")
+    df = pd.read_csv("data/summary_report.zip", compression="zip", encoding="cp1252")
     return df
 
 def show_disclaimer():
