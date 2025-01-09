@@ -120,7 +120,7 @@ def add_top_links():
     Adds horizontal navigation links: Portfolio, Blog, and Email Updates.
     """
     # Create three equal columns for the links
-    col1, col2, col3,col4,col5 = st.columns(5)
+    col1, col2, col3,col4,col5,col6 = st.columns(6)
     with col1:
         st.markdown('[**Portfolio**](https://jesse-anderson.net/)',
         unsafe_allow_html=True)
@@ -137,6 +137,9 @@ def add_top_links():
         # Email Updates link pointing to the email updates section
         #Google forms is better. .-.
         st.markdown('[**📧 Email Updates**](https://forms.gle/GnyaVwo1Vzm8nBH6A)')
+    with col6:
+        # Cumulative static map with all crimes
+        st.markdown('[**Comp. Map**](https://jesse-anderson.net/crime_map_cumulative.html)')
 
 # def add_email_subscription():
 #     """

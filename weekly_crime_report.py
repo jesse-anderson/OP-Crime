@@ -664,7 +664,7 @@ def main_report_generation():
     filtered_subset_path = csv_dir / filtered_subset_filename
     weekly_map_output_filename = f'crime_map_weekly_{date_str}.html'
     weekly_map_output_path = map_dir / weekly_map_output_filename
-    cumulative_map_output_filename = f'crime_map_cumulative_{date_str}.html'
+    cumulative_map_output_filename = f'crime_map_cumulative.html'
     cumulative_map_output_path = map_dir / cumulative_map_output_filename
 
     # Local GitHub Pages folder
