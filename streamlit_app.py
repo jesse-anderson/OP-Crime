@@ -139,7 +139,7 @@ def add_top_links():
         st.markdown('[**📧 Email Updates**](https://forms.gle/GnyaVwo1Vzm8nBH6A)')
     with col6:
         # Cumulative static map with all crimes
-        st.markdown('[**Comp. Map**](https://jesse-anderson.net/crime_map_cumulative.html)')
+        st.markdown('[**Comp. Map**](https://jesse-anderson.net/OP-Crime-Maps/crime_map_cumulative.html)')
 
 # def add_email_subscription():
 #     """
