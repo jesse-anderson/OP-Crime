@@ -135,69 +135,70 @@ def add_top_links():
         unsafe_allow_html=True)
     with col5:
         # Email Updates link pointing to the email updates section
-        st.markdown('[**📧 Email Updates**](#email-updates)')
+        #Google forms is better. .-.
+        st.markdown('[**📧 Email Updates**](https://forms.gle/GnyaVwo1Vzm8nBH6A)')
 
-def add_email_subscription():
-    """
-    Displays subscription and unsubscription forms at the bottom of the page.
-    The forms are within a collapsed expander that the user can expand manually.
-    """
-    # Add an anchor to scroll to
-    st.markdown('<a id="email-updates"></a>', unsafe_allow_html=True)
+# def add_email_subscription():
+#     """
+#     Displays subscription and unsubscription forms at the bottom of the page.
+#     The forms are within a collapsed expander that the user can expand manually.
+#     """
+#     # Add an anchor to scroll to
+#     st.markdown('<a id="email-updates"></a>', unsafe_allow_html=True)
     
-    # **3. Implement Email Updates within a Collapsed Expander**
-    with st.expander("📧 Email Updates", expanded=False):
-        st.markdown("### Subscribe to Email Updates")
-        with st.form("email_subscription_form"):
-            subscribe_email_input = st.text_input("Enter your email address to subscribe:")
-            subscribe_submit = st.form_submit_button("Subscribe")
+#     # **3. Implement Email Updates within a Collapsed Expander**
+#     with st.expander("📧 Email Updates", expanded=False):
+#         st.markdown("### Subscribe to Email Updates")
+#         with st.form("email_subscription_form"):
+#             subscribe_email_input = st.text_input("Enter your email address to subscribe:")
+#             subscribe_submit = st.form_submit_button("Subscribe")
 
-            if subscribe_submit:
-                if validate_email(subscribe_email_input):
-                    response = subscribe_email(subscribe_email_input)
-                    if response.status_code == 200:
-                        # Check if the email was already subscribed
-                        response_data = response.json()
-                        status = response_data.get("status")
-                        if status == "subscribed":
-                            # Check if the 'previous_status' was 'unsubscribed' to provide accurate feedback
-                            previous_status = response_data.get("status_if_new")
-                            if previous_status == "subscribed":
-                                st.success("Subscription successful! You've been resubscribed to the email list.")
-                            else:
-                                st.success("Subscription successful! You've been added to the email list.")
-                        else:
-                            st.info("You are already subscribed.")
-                    else:
-                        # Handle errors
-                        error_message = response.json().get('detail', 'An error occurred.')
-                        st.error(f"Subscription failed: {error_message}")
-                else:
-                    st.error("Please enter a valid email address.")
+#             if subscribe_submit:
+#                 if validate_email(subscribe_email_input):
+#                     response = subscribe_email(subscribe_email_input)
+#                     if response.status_code == 200:
+#                         # Check if the email was already subscribed
+#                         response_data = response.json()
+#                         status = response_data.get("status")
+#                         if status == "subscribed":
+#                             # Check if the 'previous_status' was 'unsubscribed' to provide accurate feedback
+#                             previous_status = response_data.get("status_if_new")
+#                             if previous_status == "subscribed":
+#                                 st.success("Subscription successful! You've been resubscribed to the email list.")
+#                             else:
+#                                 st.success("Subscription successful! You've been added to the email list.")
+#                         else:
+#                             st.info("You are already subscribed.")
+#                     else:
+#                         # Handle errors
+#                         error_message = response.json().get('detail', 'An error occurred.')
+#                         st.error(f"Subscription failed: {error_message}")
+#                 else:
+#                     st.error("Please enter a valid email address.")
 
-        st.markdown("---")  # Separator
+#         st.markdown("---")  # Separator
 
-        st.markdown("### Unsubscribe from Email Updates")
-        with st.form("email_unsubscription_form"):
-            unsubscribe_email_input = st.text_input("Enter your email address to unsubscribe:")
-            unsubscribe_submit = st.form_submit_button("Unsubscribe")
+#         st.markdown("### Unsubscribe from Email Updates")
+#         with st.form("email_unsubscription_form"):
+#             unsubscribe_email_input = st.text_input("Enter your email address to unsubscribe:")
+#             unsubscribe_submit = st.form_submit_button("Unsubscribe")
 
-            if unsubscribe_submit:
-                if validate_email(unsubscribe_email_input):
-                    response = unsubscribe_email(unsubscribe_email_input)
-                    if response.status_code == 200:
-                        response_data = response.json()
-                        status = response_data.get("status")
-                        if status == "unsubscribed":
-                            st.success("You have been unsubscribed successfully.")
-                        else:
-                            st.info("Your email was not found in our list.")
-                    else:
-                        # Handle errors
-                        error_message = response.json().get('detail', 'An error occurred.')
-                        st.error(f"Unsubscription failed: {error_message}")
-                else:
-                    st.error("Please enter a valid email address.")
+#             if unsubscribe_submit:
+#                 if validate_email(unsubscribe_email_input):
+#                     response = unsubscribe_email(unsubscribe_email_input)
+#                     if response.status_code == 200:
+#                         response_data = response.json()
+#                         status = response_data.get("status")
+#                         if status == "unsubscribed":
+#                             st.success("You have been unsubscribed successfully.")
+#                         else:
+#                             st.info("Your email was not found in our list.")
+#                     else:
+#                         # Handle errors
+#                         error_message = response.json().get('detail', 'An error occurred.')
+#                         st.error(f"Unsubscription failed: {error_message}")
+#                 else:
+#                     st.error("Please enter a valid email address.")
 
 def extract_year(filename, start_year=2017, end_year=2030):
     """
@@ -351,9 +352,9 @@ def main_app():
             popup_html = f"""
             <b>Complaint #:</b> {complaint}<br/>
             <b>Offense:</b> {offense_val}<br/>
+            <b>Date:</b> {date_str}<br/>
             <details>
               <summary><b>View Details</b></summary>
-              <b>Date:</b> {date_str}<br/>
               <b>Time:</b> {time_val}<br/>
               <b>Location:</b> {location}<br/>
               <b>Victim:</b> {victim}<br/>
@@ -388,7 +389,7 @@ def main():
         # Proceed with the main application
         main_app()
 
-        # Add Email Updates section at the bottom
-        add_email_subscription()
+        # # Add Email Updates section at the bottom
+        # add_email_subscription()
 if __name__ == "__main__":
     main()

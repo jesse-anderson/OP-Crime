@@ -191,9 +191,9 @@ def create_folium_map_filtered_data(
         popup_html = f"""
             <b>Complaint #:</b> {complaint}<br/>
             <b>Offense:</b> {offense_val}<br/>
+            <b>Date:</b> {date_str}<br/>
             <details>
               <summary><b>View Details</b></summary>
-              <b>Date:</b> {date_str}<br/>
               <b>Time:</b> {time_val}<br/>
               <b>Location:</b> {location}<br/>
               <b>Victim:</b> {victim}<br/>
@@ -334,9 +334,9 @@ def create_folium_map_cumulative(
         popup_html = f"""
             <b>Complaint #:</b> {complaint}<br/>
             <b>Offense:</b> {offense_val}<br/>
+            <b>Date:</b> {date_str}<br/>
             <details>
               <summary><b>View Details</b></summary>
-              <b>Date:</b> {date_str}<br/>
               <b>Time:</b> {time_val}<br/>
               <b>Location:</b> {location}<br/>
               <b>Victim:</b> {victim}<br/>
