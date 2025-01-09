@@ -742,21 +742,14 @@ def upload_files_to_github_batch(file_paths, github_repo_path, target_subfolder)
 def git_commit_and_push(repo_path, commit_message):
     """
     Stages all changes, commits with the provided message, and pushes to the remote repository
-    using a Personal Access Token (PAT) for authentication. Handles non-fast-forward errors
-    by pulling remote changes and retrying the push.
+    using a Personal Access Token (PAT) for HTTPS authentication or SSH keys for SSH authentication.
+    Handles non-fast-forward errors by pulling remote changes and retrying the push.
     
     Args:
         repo_path (Path): Path to the local Git repository.
         commit_message (str): Commit message.
     """
     try:
-        # Load PAT from environment variable
-        github_pat = os.getenv("GITHUB_PAT")
-        if not github_pat:
-            logging.error("GITHUB_PAT not found in environment variables.")
-            print("Error: GITHUB_PAT not found in environment variables.")
-            return
-
         # Verify that repo_path exists and is a directory
         if not repo_path.exists() or not repo_path.is_dir():
             logging.error(f"Repository path '{repo_path}' does not exist or is not a directory.")
@@ -772,23 +765,41 @@ def git_commit_and_push(repo_path, commit_message):
         logging.debug(f"Original remote URL: {original_remote_url}")
         print("Original remote URL retrieved.")
 
-        # Modify the remote URL to include the PAT
+        # Determine if the remote URL is HTTPS or SSH
         if original_remote_url.startswith("https://"):
-            # Insert PAT into the remote URL
-            # Handle potential 'https://username@...' formats
-            remote_with_pat = re.sub(r'^https://', f'https://{github_pat}@', original_remote_url)
+            auth_method = "https"
+            logging.debug("Authentication method detected: HTTPS with PAT.")
+        elif original_remote_url.startswith("git@") or original_remote_url.startswith("ssh://"):
+            auth_method = "ssh"
+            logging.debug("Authentication method detected: SSH.")
         else:
-            logging.error("Remote URL is not HTTPS. Cannot embed PAT.")
-            print("Error: Remote URL is not HTTPS. Cannot embed PAT.")
+            logging.error("Unsupported remote URL format.")
+            print("Error: Unsupported remote URL format.")
             return
 
-        # Set the remote URL with PAT
-        subprocess.run(
-            ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', remote_with_pat],
-            capture_output=True, text=True, check=True
-        )
-        logging.debug("Remote URL updated with PAT.")
-        print("Remote URL updated with PAT.")
+        # Initialize variable to track if remote URL was modified
+        remote_modified = False
+
+        if auth_method == "https":
+            # Load PAT from environment variable
+            github_pat = os.getenv("GITHUB_PAT")
+            if not github_pat:
+                logging.error("GITHUB_PAT not found in environment variables.")
+                print("Error: GITHUB_PAT not found in environment variables.")
+                return
+
+            # Modify the remote URL to include the PAT
+            # Handle potential 'https://username@...' formats
+            remote_with_pat = re.sub(r'^https://', f'https://{github_pat}@', original_remote_url)
+            logging.debug(f"Modified remote URL with PAT: {remote_with_pat}")
+            print("Remote URL updated with PAT.")
+
+            # Set the remote URL with PAT
+            subprocess.run(
+                ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', remote_with_pat],
+                capture_output=True, text=True, check=True
+            )
+            remote_modified = True
 
         # Check git status before staging
         pre_add_status = subprocess.run(
@@ -823,13 +834,14 @@ def git_commit_and_push(repo_path, commit_message):
         if not status_result.stdout.strip():
             logging.info("No changes to commit.")
             print("No changes to commit.")
-            # Restore the original remote URL before exiting
-            subprocess.run(
-                ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
-                capture_output=True, text=True, check=True
-            )
-            logging.debug("Restored original remote URL.")
-            print("Restored original remote URL.")
+            if remote_modified:
+                # Restore the original remote URL before exiting
+                subprocess.run(
+                    ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
+                    capture_output=True, text=True, check=True
+                )
+                logging.debug("Restored original remote URL.")
+                print("Restored original remote URL.")
             return
 
         # Commit changes
@@ -843,13 +855,14 @@ def git_commit_and_push(repo_path, commit_message):
         else:
             logging.error(f"Commit failed: {commit_result.stderr}")
             print(f"Error: Commit failed: {commit_result.stderr}")
-            # Restore the original remote URL before exiting
-            subprocess.run(
-                ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
-                capture_output=True, text=True, check=True
-            )
-            logging.debug("Restored original remote URL.")
-            print("Restored original remote URL.")
+            if remote_modified:
+                # Restore the original remote URL before exiting
+                subprocess.run(
+                    ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
+                    capture_output=True, text=True, check=True
+                )
+                logging.debug("Restored original remote URL.")
+                print("Restored original remote URL.")
             return
 
         # Confirm commit
@@ -922,12 +935,40 @@ def git_commit_and_push(repo_path, commit_message):
                 logging.error(f"Push failed: {push_result.stderr}")
                 print(f"Error: Push failed: {push_result.stderr}")
 
-        # Restore the original remote URL to avoid exposing the PAT
-        subprocess.run(
-            ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
-            capture_output=True, text=True, check=True
-        )
-        logging.debug("Restored original remote URL.")
-        print("Restored original remote URL.")
+        if remote_modified:
+            # Restore the original remote URL to avoid exposing the PAT
+            subprocess.run(
+                ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
+                capture_output=True, text=True, check=True
+            )
+            logging.debug("Restored original remote URL.")
+            print("Restored original remote URL.")
+    except subprocess.CalledProcessError as cpe:
+        logging.error(f"Subprocess error: {cpe.stderr}")
+        print(f"Error: Subprocess error: {cpe.stderr}")
+        if remote_modified:
+            # Attempt to restore the original remote URL
+            try:
+                subprocess.run(
+                    ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
+                    capture_output=True, text=True, check=True
+                )
+                logging.debug("Restored original remote URL after subprocess error.")
+                print("Restored original remote URL.")
+            except Exception as e_restore:
+                logging.error(f"Failed to restore remote URL: {e_restore}")
+                print(f"Error: Failed to restore remote URL: {e_restore}")
     except Exception as e:
+        logging.error(f"Unexpected error: {e}")
         print(f"Error: {e}")
+        if 'remote_modified' in locals() and remote_modified:
+            try:
+                subprocess.run(
+                    ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
+                    capture_output=True, text=True, check=True
+                )
+                logging.debug("Restored original remote URL after unexpected error.")
+                print("Restored original remote URL.")
+            except Exception as e_restore:
+                logging.error(f"Failed to restore remote URL: {e_restore}")
+                print(f"Error: Failed to restore remote URL: {e_restore}")
