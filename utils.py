@@ -52,9 +52,9 @@ def load_env_vars(file_path):
                 key = key.strip()
                 value = value.strip()
                 os.environ[key] = value
-                print(f"Loaded environment variable: {key}")  # Optional: Remove in production
+                print(f"Loaded environment variable")  
             else:
-                print(f"Ignoring invalid line in env file: {line}")  # Optional: Remove in production
+                print(f"Ignoring invalid line in env file")  
 
 def normalize_location(loc_str):
     """
