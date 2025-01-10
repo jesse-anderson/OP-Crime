@@ -652,6 +652,9 @@ Cumulative map:
         
 Last week's data:
 {body_text['csv_url']}
+
+Streamlit Application:
+https://op-crime.streamlit.app/
         """
 
         part1 = MIMEText(plain_text, 'plain')
