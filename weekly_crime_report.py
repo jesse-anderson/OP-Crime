@@ -29,7 +29,7 @@ from googleapiclient.errors import HttpError
 from utils import load_env_vars,extract_year,upload_file_to_github,upload_files_to_github_batch
 
 # Folium plugins
-from folium.plugins import MarkerCluster
+from folium.plugins import MarkerCluster, HeatMap#, MeasureControl #probably later....
 
 # Define Gmail API scope
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
@@ -171,7 +171,10 @@ def create_folium_map_filtered_data(
     oak_park_center = [41.885, -87.78]
     crime_map = folium.Map(location=oak_park_center, zoom_start=13)
 
-    marker_cluster = MarkerCluster().add_to(crime_map)
+    # FeatureGroup for Marker Clusters
+    marker_cluster_group = folium.FeatureGroup(name='Marker Clusters').add_to(crime_map)
+    marker_cluster = MarkerCluster().add_to(marker_cluster_group)
+
     # Define the static part of the base URL
     base_url_static = 'https://www.oak-park.us/sites/default/files/police/summaries/'
 
@@ -207,6 +210,20 @@ def create_folium_map_filtered_data(
             popup=folium.Popup(popup_html, max_width=300),
             icon=folium.Icon(color='red', icon='info-sign')
         ).add_to(marker_cluster)
+
+    # FeatureGroup for HeatMap
+    heatmap_group = folium.FeatureGroup(name='Heatmap').add_to(crime_map)
+
+    # Prepare data for HeatMap
+    heat_data = df[[lat_col, lng_col]].dropna().values.tolist()
+
+    # Add HeatMap layer
+    HeatMap(
+        heat_data,
+        radius=10,
+        blur=15,
+        max_zoom=1
+    ).add_to(heatmap_group)
 
     # Basic map title
     title_html = '''
@@ -332,6 +349,10 @@ def create_folium_map_filtered_data(
     # Add the footer to the map
     footer_element = folium.Element(footer_html)
     crime_map.get_root().html.add_child(footer_element)
+
+    #heatmap and cluster layers
+    folium.LayerControl(collapsed=False).add_to(crime_map)
+
     # 2) Save final HTML
     crime_map.save(str(output_html_path))
 
@@ -350,7 +371,9 @@ def create_folium_map_cumulative(
     oak_park_center = [41.885, -87.78]
     crime_map = folium.Map(location=oak_park_center, zoom_start=11)  # Zoomed out for cumulative view
 
-    marker_cluster = MarkerCluster().add_to(crime_map)
+    # FeatureGroup for Marker Clusters
+    marker_cluster_group = folium.FeatureGroup(name='Marker Clusters').add_to(crime_map)
+    marker_cluster = MarkerCluster().add_to(marker_cluster_group)
     # Define the static part of the base URL
     base_url_static = 'https://www.oak-park.us/sites/default/files/police/summaries/'
 
@@ -386,6 +409,20 @@ def create_folium_map_cumulative(
             popup=folium.Popup(popup_html, max_width=300),
             icon=folium.Icon(color='blue', icon='info-sign')  # Different color for distinction
         ).add_to(marker_cluster)
+
+    # FeatureGroup for HeatMap
+    heatmap_group = folium.FeatureGroup(name='Heatmap').add_to(crime_map)
+
+    # Prepare data for HeatMap
+    heat_data = df[[lat_col, lng_col]].dropna().values.tolist()
+
+    # Add HeatMap layer
+    HeatMap(
+        heat_data,
+        radius=10,
+        blur=15,
+        max_zoom=1
+    ).add_to(heatmap_group)
 
     # Basic map title
     title_html = '''
@@ -512,6 +549,9 @@ def create_folium_map_cumulative(
     # Add the footer to the map
     footer_element = folium.Element(footer_html)
     crime_map.get_root().html.add_child(footer_element)
+
+    # Add Layer Control
+    folium.LayerControl(collapsed=False).add_to(crime_map)
 
     # Save the final HTML with the footer included
 
@@ -650,17 +690,19 @@ Hello,
 
 The crime report from {body_text['start_date']} to {body_text['end_date']} is attached as a .csv file.
 
-Interactive map:
-{body_text['weekly_map_url']}
+Interactive maps:
+- Weekly Crime Map: {body_text['weekly_map_url']}
+- Cumulative Crime Map: {body_text['cumulative_map_url']}
 
-Cumulative map:
-{body_text['cumulative_map_url']}
-        
-Last week's data:
-{body_text['csv_url']}
+Additional Features:
+- Both Marker Clusters and Heatmap layers are available within the interactive maps. Use the layer control on the map to toggle between them.
 
-Streamlit Application:
-https://op-crime.streamlit.app/
+Additional Resources:
+- CSV Data: {body_text['csv_url']}
+- Streamlit Application: https://op-crime.streamlit.app/
+
+Best,
+Crime Report Bot
         """
 
         part1 = MIMEText(plain_text, 'plain')
@@ -817,7 +859,7 @@ def main_report_generation():
         print(f"[ERROR] Could not create cumulative Folium map: {e}")
         return
     
-    test = False
+    test = False #if false will send email and up to github
     if not test:
         # (G) Upload Map and csv
         try:
