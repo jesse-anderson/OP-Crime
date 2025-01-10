@@ -411,11 +411,13 @@ def main_app():
     </div>
 """
 
-        st_folium(crime_map, width=1000, height=1000, use_container_width=True)
+        st_folium(crime_map, use_container_width=True)
         # **Insert the Footer Below the Map**
         st.markdown(footer_html, unsafe_allow_html=True)
 
 def main():
+    # Set the page layout to wide
+    st.set_page_config(page_title="Oak Park Crime", layout="wide")
     # Check if user has agreed to disclaimer
     if "user_agreed" not in st.session_state:
         st.session_state["user_agreed"] = False
@@ -423,8 +425,7 @@ def main():
     if not st.session_state["user_agreed"]:
         show_disclaimer()
     else:
-        # Set the page layout to wide
-        st.set_page_config(page_title="Oak Park Crime", layout="wide")
+        
 
         # Add horizontal navigation links at the top
         add_top_links()
