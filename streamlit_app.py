@@ -372,7 +372,7 @@ def main_app():
               <b>Location:</b> {location}<br/>
               <b>Victim:</b> {victim}<br/>
               <b>Narrative:</b> {narrative}<br/>
-              <b>URL:</b> <a href="{link}" target="_blank">PDF Link</a>
+              <b>URL:</b> <a href="{filename}" target="_blank">PDF Link</a>
             </details>
         """
 
@@ -393,8 +393,8 @@ def main_app():
             background-color: #f1f1f1;
             color: #555;
             text-align: center;
-            padding: 10px 0;
-            font-size: 12px;
+            padding: 0px 0;
+            font-size: 10px;
             box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
         }}
         .footer a {{
