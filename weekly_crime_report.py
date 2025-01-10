@@ -295,7 +295,40 @@ def create_folium_map_filtered_data(
 
     disclaimers_element = folium.Element(disclaimers_overlay)
     crime_map.get_root().html.add_child(disclaimers_element)
+    # After saving the map, add the footer using Folium's Element
+    footer_html = f"""
+    <style>
+        .footer {{
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: #f1f1f1;
+            color: #555;
+            text-align: center;
+            padding: 0px 0;
+            font-size: 10px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            z-index: 10000; /* Ensure it's on top */
+        }}
+        .footer a {{
+            color: #555;
+            text-decoration: none;
+            margin: 0 10px;
+        }}
+        .footer a:hover {{
+            text-decoration: underline;
+        }}
+    </style>
+    <div class="footer">
+        Copyright &copy; {datetime.now().year} Jesse Anderson. All rights reserved.
 
+    </div>
+    """
+
+    # Add the footer to the map
+    footer_element = folium.Element(footer_html)
+    crime_map.get_root().html.add_child(footer_element)
     # 2) Save final HTML
     crime_map.save(str(output_html_path))
 
@@ -439,8 +472,47 @@ def create_folium_map_cumulative(
     disclaimers_element = folium.Element(disclaimers_overlay)
     crime_map.get_root().html.add_child(disclaimers_element)
 
-    # Save final HTML
+    # After saving the map, add the footer using Folium's Element
+    footer_html = f"""
+    <style>
+        .footer {{
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: #f1f1f1;
+            color: #555;
+            text-align: center;
+            padding: 0px 0;
+            font-size: 10px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            z-index: 10000; /* Ensure it's on top */
+        }}
+        .footer a {{
+            color: #555;
+            text-decoration: none;
+            margin: 0 10px;
+        }}
+        .footer a:hover {{
+            text-decoration: underline;
+        }}
+    </style>
+    <div class="footer">
+        Copyright &copy; {datetime.now().year} Jesse Anderson. All rights reserved.
+
+    </div>
+    """
+
+    # Add the footer to the map
+    footer_element = folium.Element(footer_html)
+    crime_map.get_root().html.add_child(footer_element)
+
+    # Save the final HTML with the footer included
+
+    # 2) Save final HTML
     crime_map.save(str(output_html_path))
+
+    
 
 
 def get_gmail_service():
@@ -490,7 +562,6 @@ def get_gmail_service():
         logging.error(f"An error occurred while building Gmail service: {error}")
         print(f"[ERROR] An error occurred while building Gmail service: {error}")
         return None
-
 
 def send_email_with_disclaimer_and_links(
     service,
@@ -554,34 +625,33 @@ def send_email_with_disclaimer_and_links(
 
         # Define the plain text content
         plain_text = f"""
-        Important Legal Disclaimer
+Important Legal Disclaimer
+
+By using this demonstrative research tool, you acknowledge and agree:
+
+- This tool is for demonstration purposes only.
+- The data originated from publicly available Oak Park Police Department PDF files. View the official site here: https://www.oak-park.us/village-services/police-department.
+- During parsing, ~10% of total complaints since 2018 were omitted due to parsing issues; thus the data is incomplete.
+- The official and complete PDF files remain with the Oak Park Police Department.
+- You will not hold the author liable for any decisions—formal or informal—based on this tool.
+- This tool should not be used in any official or unofficial decision-making.
+
+By continuing, you indicate your acceptance of these terms and disclaim all liability.
+
+------------
+
+Hello,
+
+The crime report from {body_text['start_date']} to {body_text['end_date']} is attached as a .csv file.
+
+Interactive map:
+{body_text['weekly_map_url']}
+
+Cumulative map:
+{body_text['cumulative_map_url']}
         
-        By using this demonstrative research tool, you acknowledge and agree:
-
-        - This tool is for demonstration purposes only.
-        - The data originated from publicly available Oak Park Police Department PDF files.
-          View the official site here: https://www.oak-park.us/village-services/police-department.
-        - During parsing, ~10% of total complaints since 2018 were omitted due to parsing issues; 
-          thus the data is incomplete.
-        - The official and complete PDF files remain with the Oak Park Police Department.
-        - You will not hold the author liable for any decisions—formal or informal—based on this tool.
-        - This tool should not be used in any official or unofficial decision-making.
-
-        By continuing, you indicate your acceptance of these terms and disclaim all liability.
-
-        ------------
-
-        Hello,
-        The crime report from {body_text['start_date']} to {body_text['end_date']} is attached as a .csv file.
-
-        Interactive map:
-        {body_text['weekly_map_url']}
-
-        Cumulative map:
-        {body_text['cumulative_map_url']}
-        
-        Last week's data:
-        {body_text['csv_url']}
+Last week's data:
+{body_text['csv_url']}
         """
 
         part1 = MIMEText(plain_text, 'plain')
@@ -782,8 +852,8 @@ def main_report_generation():
         # (K) Load Recipients
         try:
             # to_list = load_recipients_list(recipients_csv)
-            # to_list = get_mailchimp_subscribers()
-            to_list = ["jander98@illinois.edu"]
+            to_list = get_mailchimp_subscribers()
+            # to_list = ["jander98@illinois.edu"]
         except FileNotFoundError as e:
             logging.error(f"Error loading recipients: {e}")
             print(f"[ERROR] {e}")

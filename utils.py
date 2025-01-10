@@ -21,6 +21,7 @@ import subprocess
 import shutil
 from datetime import datetime, timedelta
 import base64
+# import folium
 
 # Initialize the API call counter
 api_call_count = 0  # Global counter for API calls

@@ -7,6 +7,7 @@ import numpy as np
 import re
 import hashlib
 import requests
+from folium.plugins import MarkerCluster
 
 # Define Mailchimp API details from secrets
 MAILCHIMP_API_KEY = st.secrets["mailchimp"]["api_key"]
@@ -32,6 +33,24 @@ def load_data():
     """
     df = pd.read_csv("data/summary_report.zip", compression="zip", encoding="cp1252")
     return df
+
+# def add_footer(crime_map):
+#     """
+#     Adds a footer to the provided Folium map.
+#     """
+#     current_year = datetime.now().year
+#     footer_html = f'''
+#         <div style="position: fixed; 
+#                     bottom: 10px; 
+#                     width: 100%; 
+#                     text-align: center; 
+#                     font-size: 12px; 
+#                     color: #555;">
+#             &copy; {current_year} Jesse Anderson
+#         </div>
+#     '''
+#     footer_element = folium.Element(footer_html)
+#     crime_map.get_root().html.add_child(footer_element)
 
 def show_disclaimer():
     """
@@ -331,7 +350,7 @@ def main_app():
         # Create Folium map
         oak_park_center = [41.885, -87.78]
         crime_map = folium.Map(location=oak_park_center, zoom_start=13)
-
+        marker_cluster = MarkerCluster().add_to(crime_map)
         for _, row in final_df.iterrows():
             complaint   = safe_field(row.get('Complaint #'))
             offense_val = safe_field(row.get('Offense'))
@@ -368,12 +387,42 @@ def main_app():
 
             folium.Marker(
                 location=[row['Lat'], row['Long']],
-                popup=folium.Popup(popup_html, max_width=400),
+                popup=folium.Popup(popup_html, max_width=300),
                 tooltip=f"Complaint # {complaint}",
-                icon=folium.Icon(color="blue", icon="info-sign")
-            ).add_to(crime_map)
+                icon=folium.Icon(color="red", icon="info-sign")
+            ).add_to(marker_cluster)
+
+        footer_html = f"""
+    <style>
+        .footer {{
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: #f1f1f1;
+            color: #555;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 12px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }}
+        .footer a {{
+            color: #555;
+            text-decoration: none;
+            margin: 0 10px;
+        }}
+        .footer a:hover {{
+            text-decoration: underline;
+        }}
+    </style>
+    <div class="footer">
+        Copyright &copy; {datetime.now().year} Jesse Anderson. All rights reserved.
+    </div>
+"""
 
         st_folium(crime_map, width=1000, height=1000, use_container_width=True)
+        # **Insert the Footer Below the Map**
+        st.markdown(footer_html, unsafe_allow_html=True)
 
 def main():
     # Check if user has agreed to disclaimer
