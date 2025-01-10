@@ -219,6 +219,9 @@ def create_folium_map_filtered_data(
     <a href="mailto:jesse@jesse-anderson.net">Contact</a> |
     <a href="https://forms.gle/GnyaVwo1Vzm8nBH6A">
         Add me to Weekly Updates
+    </a> |
+    <a href="https://jesse-anderson.net/OP-Crime-Maps/crime_map_cumulative.html">
+    Comp. Map 
     </a>
     </h3>
 '''
@@ -395,6 +398,9 @@ def create_folium_map_cumulative(
     <a href="mailto:jesse@jesse-anderson.net">Contact</a> |
     <a href="https://forms.gle/GnyaVwo1Vzm8nBH6A">
         Add me to Weekly Updates
+    </a> |
+    <a href="https://jesse-anderson.net/OP-Crime-Maps/crime_map_cumulative.html">
+    Comp. Map 
     </a>
     </h3>
 '''

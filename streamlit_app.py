@@ -361,15 +361,6 @@ def main_app():
             victim      = safe_field(row.get('Victim/Address'))
             narrative   = safe_field(row.get('Narrative'))
             filename = safe_field(row.get('File Name'))
-            # Extract the year from the filename
-            year = extract_year(filename)
-            if year:
-                base_url = f"{base_url_static}{year}/"
-                link = f"{base_url}{filename}"
-            else:
-                # Handle cases where the year isn't found or is out of range
-                link = "#"
-                st.warning(f"Year not found or out of range in filename: {filename}")
 
             popup_html = f"""
             <b>Complaint #:</b> {complaint}<br/>
