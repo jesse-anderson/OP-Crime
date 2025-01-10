@@ -26,7 +26,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # Local utility to load env vars
-from utils import load_env_vars,extract_year,upload_file_to_github,upload_files_to_github_batch
+from utils import load_env_vars,extract_year,upload_files,git_commit_and_force_push
 
 # Folium plugins
 from folium.plugins import MarkerCluster, HeatMap#, MeasureControl #probably later....
@@ -859,29 +859,49 @@ def main_report_generation():
         print(f"[ERROR] Could not create cumulative Folium map: {e}")
         return
     
-    test = False #if false will send email and up to github
-    if not test:
+    githubTest = False #if false up to github
+    gmailTest = False# if false will send email
+    if not githubTest:
         # (G) Upload Map and csv
         try:
             # Upload Maps
+            # Upload Maps
             files_to_upload_maps = [weekly_map_output_path, cumulative_map_output_path]
-            upload_files_to_github_batch(
-                file_paths=files_to_upload_maps,
-                github_repo_path=github_repo_path,
+            upload_files(
+                repo_path=github_repo_path,
+                files_to_upload=files_to_upload_maps,
                 target_subfolder='OP-Crime-Maps'
             )
-            time.sleep(5) #paranoia
+            time.sleep(5)  # Paranoia delay to ensure Git operations complete
+
             # Upload CSV
-            files_to_upload_csv = filtered_subset_path
-            upload_file_to_github(
-                file_path=files_to_upload_csv,
-                github_repo_path=github_repo_path,
+            files_to_upload_csv = [filtered_subset_path]
+            upload_files(
+                repo_path=github_repo_path,
+                files_to_upload=files_to_upload_csv,
                 target_subfolder='OP-Crime-Data'
             )
+            print("Uploaded OP-Crime-Data.")
+            logging.info("Uploaded OP-Crime-Data.")
+
+            time.sleep(2)  # Short delay to ensure file operations complete
+
+            # Prepare commit message
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            commit_message = f"Add/update files on {timestamp}"
+            logging.info(f"Prepared commit message: '{commit_message}'")
+            print(f"Prepared commit message: '{commit_message}'")
+
+            # Commit and force push changes
+            git_commit_and_force_push(github_repo_path, commit_message)
+
+            logging.info("Script finished successfully.")
+            print("Finished full_crime_report.")
+
         except Exception as e:
             logging.error(f"Failed to upload files to GitHub: {e}")
             print(f"[ERROR] Could not upload files to GitHub: {e}")
-            return
+            sys.exit(1)
         # (I) Generate GitHub URLs for the uploaded files
         # Assuming GitHub Pages are served from the root of the repository
         github_base_url = "https://jesse-anderson.github.io"
@@ -889,7 +909,7 @@ def main_report_generation():
         weekly_map_url = f"{github_base_url}/OP-Crime-Maps/{weekly_map_output_filename}"
         cumulative_map_url = f"{github_base_url}/OP-Crime-Maps/{cumulative_map_output_filename}"
         csv_url = f"{github_base_url}/OP-Crime-Data/{filtered_subset_filename}"
-
+    if not gmailTest:
         # (J) Gmail API & Email
         try:
             service = get_gmail_service()

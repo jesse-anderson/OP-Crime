@@ -21,6 +21,7 @@ import subprocess
 import shutil
 from datetime import datetime, timedelta
 import base64
+import sys
 # import folium
 
 # Initialize the API call counter
@@ -663,105 +664,146 @@ def get_file_sha(repo_owner, repo_name, file_path, github_pat):
         print(f"[ERROR] Failed to check file existence: {response.status_code} - {response.text}")
         return None
 
-def upload_file_to_github(file_path, github_repo_path, target_subfolder):
+# def upload_file_to_github(file_path, github_repo_path, target_subfolder):
+#     """
+#     Uploads a specified file to a target subfolder within the GitHub repository
+#     using the GitHub API and Personal Access Token (PAT).
+
+#     Args:
+#         file_path (Path): Path to the file to upload.
+#         github_repo_path (Path): Path to the local GitHub repository (not used in API method).
+#         target_subfolder (str): Subfolder within the repository where the file will be placed.
+#     """
+#     try:
+#         GITHUB_PAT = os.getenv("GITHUB_PAT")
+#         if not GITHUB_PAT:
+#             raise ValueError("GITHUB_PAT not found in environment variables.")
+
+#         repo_owner = "jesse-anderson"  # Replace with your GitHub username or organization
+#         repo_name = "jesse-anderson.github.io"  # Replace with your repository name
+
+#         # Define target path within the repository
+#         target_path = f"{target_subfolder}/{file_path.name}"
+
+#         # Check if the file already exists to determine if it's an update or create operation
+#         existing_sha = get_file_sha(repo_owner, repo_name, target_path, GITHUB_PAT)
+
+#         with open(file_path, 'rb') as f:
+#             content = f.read()
+
+#         encoded_content = base64.b64encode(content).decode('utf-8')
+
+#         commit_message = f"Add {'update' if existing_sha else 'new'} file {file_path.name} on {datetime.now().strftime('%Y-%m-%d')}"
+
+#         data = {
+#             "message": commit_message,
+#             "content": encoded_content,
+#             "branch": "main"
+#         }
+
+#         if existing_sha:
+#             data["sha"] = existing_sha  # Include sha if updating an existing file
+
+#         api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{target_path}"
+#         headers = {"Authorization": f"token {GITHUB_PAT}"}
+
+#         response = requests.put(api_url, json=data, headers=headers)
+
+#         if response.status_code in [200, 201]:
+#             action = "updated" if existing_sha else "created"
+#             logging.info(f"Successfully {action} {file_path.name} to GitHub.")
+#             print(f"Successfully {action} {file_path.name} to GitHub.")
+#         else:
+#             logging.error(f"Failed to upload {file_path.name} to GitHub. Status Code: {response.status_code}")
+#             print(f"Failed to upload {file_path.name} to GitHub. Status Code: {response.status_code}")
+#             print(response.json())
+
+#     except Exception as e:
+#         logging.error(f"Failed to upload {file_path.name} to GitHub: {e}")
+#         print(f"[ERROR] Could not upload {file_path.name} to GitHub: {e}")
+
+# def upload_files_to_github_batch(file_paths, github_repo_path, target_subfolder):
+#     """
+#     Uploads multiple files to a target subfolder within the GitHub repository
+#     using the GitHub API and Personal Access Token (PAT).
+#     """
+#     try:
+#         logging.info(f"Starting batch upload for files: {[str(fp) for fp in file_paths]}")
+#         print(f"Starting batch upload for files: {[str(fp) for fp in file_paths]}")
+
+#         # Define target directory and ensure it exists
+#         target_dir = Path(target_subfolder)
+#         for file_path in file_paths:
+#             upload_file_to_github(file_path, github_repo_path, target_subfolder)
+
+#     except Exception as e:
+#         logging.error(f"Failed to upload files to GitHub: {e}")
+#         print(f"[ERROR] Could not upload files to GitHub: {e}")
+
+def run_subprocess(command, check=True):
     """
-    Uploads a specified file to a target subfolder within the GitHub repository
-    using the GitHub API and Personal Access Token (PAT).
+    Runs a subprocess command and returns the result.
 
     Args:
-        file_path (Path): Path to the file to upload.
-        github_repo_path (Path): Path to the local GitHub repository (not used in API method).
-        target_subfolder (str): Subfolder within the repository where the file will be placed.
+        command (list): The command and its arguments to execute.
+        check (bool): If True, raises CalledProcessError on non-zero exit.
+
+    Returns:
+        subprocess.CompletedProcess: The result of the subprocess execution.
     """
     try:
-        GITHUB_PAT = os.getenv("GITHUB_PAT")
-        if not GITHUB_PAT:
-            raise ValueError("GITHUB_PAT not found in environment variables.")
-
-        repo_owner = "jesse-anderson"  # Replace with your GitHub username or organization
-        repo_name = "jesse-anderson.github.io"  # Replace with your repository name
-
-        # Define target path within the repository
-        target_path = f"{target_subfolder}/{file_path.name}"
-
-        # Check if the file already exists to determine if it's an update or create operation
-        existing_sha = get_file_sha(repo_owner, repo_name, target_path, GITHUB_PAT)
-
-        with open(file_path, 'rb') as f:
-            content = f.read()
-
-        encoded_content = base64.b64encode(content).decode('utf-8')
-
-        commit_message = f"Add {'update' if existing_sha else 'new'} file {file_path.name} on {datetime.now().strftime('%Y-%m-%d')}"
-
-        data = {
-            "message": commit_message,
-            "content": encoded_content,
-            "branch": "main"
-        }
-
-        if existing_sha:
-            data["sha"] = existing_sha  # Include sha if updating an existing file
-
-        api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{target_path}"
-        headers = {"Authorization": f"token {GITHUB_PAT}"}
-
-        response = requests.put(api_url, json=data, headers=headers)
-
-        if response.status_code in [200, 201]:
-            action = "updated" if existing_sha else "created"
-            logging.info(f"Successfully {action} {file_path.name} to GitHub.")
-            print(f"Successfully {action} {file_path.name} to GitHub.")
-        else:
-            logging.error(f"Failed to upload {file_path.name} to GitHub. Status Code: {response.status_code}")
-            print(f"Failed to upload {file_path.name} to GitHub. Status Code: {response.status_code}")
-            print(response.json())
-
+        result = subprocess.run(command, capture_output=True, text=True, check=check)
+        logging.debug(f"Command {' '.join(command)} executed successfully.")
+        return result
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Command {' '.join(command)} failed with error: {e.stderr.strip()}")
+        print(f"Error: Command {' '.join(command)} failed with error: {e.stderr.strip()}")
+        raise
     except Exception as e:
-        logging.error(f"Failed to upload {file_path.name} to GitHub: {e}")
-        print(f"[ERROR] Could not upload {file_path.name} to GitHub: {e}")
+        logging.error(f"Unexpected error running command {' '.join(command)}: {e}")
+        print(f"Error: Unexpected error running command {' '.join(command)}: {e}")
+        raise
 
-def upload_files_to_github_batch(file_paths, github_repo_path, target_subfolder):
+def git_commit_and_force_push(repo_path, commit_message):
     """
-    Uploads multiple files to a target subfolder within the GitHub repository
-    using the GitHub API and Personal Access Token (PAT).
-    """
-    try:
-        logging.info(f"Starting batch upload for files: {[str(fp) for fp in file_paths]}")
-        print(f"Starting batch upload for files: {[str(fp) for fp in file_paths]}")
+    Stages all changes, commits with the provided message, and force pushes to the remote repository.
 
-        # Define target directory and ensure it exists
-        target_dir = Path(target_subfolder)
-        for file_path in file_paths:
-            upload_file_to_github(file_path, github_repo_path, target_subfolder)
-
-    except Exception as e:
-        logging.error(f"Failed to upload files to GitHub: {e}")
-        print(f"[ERROR] Could not upload files to GitHub: {e}")
-
-
-def git_commit_and_push(repo_path, commit_message):
-    """
-    Stages all changes, commits with the provided message, and pushes to the remote repository
-    using a Personal Access Token (PAT) for HTTPS authentication or SSH keys for SSH authentication.
-    Handles non-fast-forward errors by pulling remote changes and retrying the push.
-    
     Args:
         repo_path (Path): Path to the local Git repository.
         commit_message (str): Commit message.
     """
     try:
+        logging.info("Starting git_commit_and_force_push process.")
+        print("Starting git_commit_and_force_push process.")
+
         # Verify that repo_path exists and is a directory
         if not repo_path.exists() or not repo_path.is_dir():
             logging.error(f"Repository path '{repo_path}' does not exist or is not a directory.")
             print(f"Error: Repository path '{repo_path}' does not exist or is not a directory.")
             return
 
-        # Get the original remote URL
-        original_remote = subprocess.run(
-            ['git', '-C', str(repo_path), 'remote', 'get-url', 'origin'],
-            capture_output=True, text=True, check=True
+        # Stage all changes
+        run_subprocess(['git', '-C', str(repo_path), 'add', '-A'])
+        logging.info("Staged all changes.")
+        print("Staged all changes.")
+
+        # Check if there are any changes to commit
+        status_result = subprocess.run(
+            ['git', '-C', str(repo_path), 'status', '--porcelain'],
+            capture_output=True, text=True
         )
+        if not status_result.stdout.strip():
+            logging.info("No changes to commit.")
+            print("No changes to commit.")
+            return
+
+        # Commit changes
+        run_subprocess(['git', '-C', str(repo_path), 'commit', '-m', commit_message])
+        logging.info(f"Committed changes with message: '{commit_message}'.")
+        print(f"Committed changes with message: '{commit_message}'.")
+
+        # Get the original remote URL
+        original_remote = run_subprocess(['git', '-C', str(repo_path), 'remote', 'get-url', 'origin'])
         original_remote_url = original_remote.stdout.strip()
         logging.debug(f"Original remote URL: {original_remote_url}")
         print("Original remote URL retrieved.")
@@ -778,11 +820,8 @@ def git_commit_and_push(repo_path, commit_message):
             print("Error: Unsupported remote URL format.")
             return
 
-        # Initialize variable to track if remote URL was modified
-        remote_modified = False
-
+        # If HTTPS, modify remote URL to include PAT
         if auth_method == "https":
-            # Load PAT from environment variable
             github_pat = os.getenv("GITHUB_PAT")
             if not github_pat:
                 logging.error("GITHUB_PAT not found in environment variables.")
@@ -790,186 +829,145 @@ def git_commit_and_push(repo_path, commit_message):
                 return
 
             # Modify the remote URL to include the PAT
-            # Handle potential 'https://username@...' formats
             remote_with_pat = re.sub(r'^https://', f'https://{github_pat}@', original_remote_url)
             logging.debug(f"Modified remote URL with PAT: {remote_with_pat}")
             print("Remote URL updated with PAT.")
 
             # Set the remote URL with PAT
-            subprocess.run(
-                ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', remote_with_pat],
-                capture_output=True, text=True, check=True
-            )
-            remote_modified = True
+            run_subprocess(['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', remote_with_pat])
 
-        # Check git status before staging
-        pre_add_status = subprocess.run(
-            ['git', '-C', str(repo_path), 'status'],
-            capture_output=True, text=True
-        )
-        logging.debug(f"Git status before adding:\n{pre_add_status.stdout}")
-        print(f"Git status before adding:\n{pre_add_status.stdout}")
+        # Force push to remote
+        run_subprocess(['git', '-C', str(repo_path), 'push', 'origin', 'main', '--force'])
+        logging.info("Force pushed changes to remote repository.")
+        print("Force pushed changes to remote repository.")
 
-        # Stage all changes
-        # Using 'git add -A' to ensure all changes (including deletions) are staged
-        subprocess.run(
-            ['git', '-C', str(repo_path), 'add', '-A'],
-            capture_output=True, text=True, check=True
-        )
-        logging.info("Staged all changes.")
-        print("Staged all changes.")
-
-        # Check git status after staging
-        post_add_status = subprocess.run(
-            ['git', '-C', str(repo_path), 'status'],
-            capture_output=True, text=True
-        )
-        logging.debug(f"Git status after adding:\n{post_add_status.stdout}")
-        print(f"Git status after adding:\n{post_add_status.stdout}")
-
-        # Check if there are any changes to commit
-        status_result = subprocess.run(
-            ['git', '-C', str(repo_path), 'status', '--porcelain'],
-            capture_output=True, text=True, check=True
-        )
-        if not status_result.stdout.strip():
-            logging.info("No changes to commit.")
-            print("No changes to commit.")
-            if remote_modified:
-                # Restore the original remote URL before exiting
-                subprocess.run(
-                    ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
-                    capture_output=True, text=True, check=True
-                )
-                logging.debug("Restored original remote URL.")
-                print("Restored original remote URL.")
-            return
-
-        # Commit changes
-        commit_result = subprocess.run(
-            ['git', '-C', str(repo_path), 'commit', '-m', commit_message],
-            capture_output=True, text=True
-        )
-        if commit_result.returncode == 0:
-            logging.info(f"Committed changes with message: '{commit_message}'.")
-            print(f"Committed changes with message: '{commit_message}'.")
-        else:
-            logging.error(f"Commit failed: {commit_result.stderr}")
-            print(f"Error: Commit failed: {commit_result.stderr}")
-            if remote_modified:
-                # Restore the original remote URL before exiting
-                subprocess.run(
-                    ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
-                    capture_output=True, text=True, check=True
-                )
-                logging.debug("Restored original remote URL.")
-                print("Restored original remote URL.")
-            return
-
-        # Confirm commit
-        last_commit = subprocess.run(
-            ['git', '-C', str(repo_path), 'log', '-1', '--pretty=%B'],
-            capture_output=True, text=True, check=True
-        )
-        logging.debug(f"Last commit message: {last_commit.stdout.strip()}")
-        print(f"Last commit message: {last_commit.stdout.strip()}")
-
-        # Attempt to push changes
-        push_result = subprocess.run(
-            ['git', '-C', str(repo_path), 'push', 'origin', 'main'],  # Change 'main' if your branch is different
-            capture_output=True, text=True
-        )
-
-        if push_result.returncode == 0:
-            logging.info("Pushed changes to remote repository.")
-            print("Pushed changes to remote repository.")
-        else:
-            # Check if the error is a non-fast-forward error
-            if "non-fast-forward" in push_result.stderr:
-                logging.warning("Push failed due to non-fast-forward. Attempting to pull and retry push.")
-                print("Push failed due to non-fast-forward. Attempting to pull and retry push.")
-
-                # Pull remote changes with rebase to avoid unnecessary merge commits
-                pull_result = subprocess.run(
-                    ['git', '-C', str(repo_path), 'pull', 'origin', 'main', '--rebase'],  # Change 'main' if needed
-                    capture_output=True, text=True
-                )
-
-                if pull_result.returncode == 0:
-                    logging.info("Pulled remote changes successfully.")
-                    print("Pulled remote changes successfully.")
-
-                    # Retry pushing changes
-                    retry_push = subprocess.run(
-                        ['git', '-C', str(repo_path), 'push', 'origin', 'main'],  # Change 'main' if needed
-                        capture_output=True, text=True
-                    )
-
-                    if retry_push.returncode == 0:
-                        logging.info("Pushed changes to remote repository after pulling.")
-                        print("Pushed changes to remote repository after pulling.")
-                    else:
-                        logging.error(f"Retry push failed: {retry_push.stderr}")
-                        print(f"Error: Retry push failed: {retry_push.stderr}")
-                else:
-                    logging.error(f"Pull failed: {pull_result.stderr}")
-                    print(f"Error: Pull failed: {pull_result.stderr}")
-
-                    # Optional: Force push (use with caution)
-                    user_input = input("Do you want to force push and overwrite remote changes? (y/N): ").strip().lower()
-                    if user_input == 'y':
-                        force_push = subprocess.run(
-                            ['git', '-C', str(repo_path), 'push', 'origin', 'main', '--force'],
-                            capture_output=True, text=True
-                        )
-                        if force_push.returncode == 0:
-                            logging.info("Force pushed changes to remote repository.")
-                            print("Force pushed changes to remote repository.")
-                        else:
-                            logging.error(f"Force push failed: {force_push.stderr}")
-                            print(f"Error: Force push failed: {force_push.stderr}")
-                    else:
-                        logging.warning("Force push aborted by user.")
-                        print("Force push aborted by user.")
-            else:
-                # Other push errors
-                logging.error(f"Push failed: {push_result.stderr}")
-                print(f"Error: Push failed: {push_result.stderr}")
-
-        if remote_modified:
-            # Restore the original remote URL to avoid exposing the PAT
-            subprocess.run(
-                ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
-                capture_output=True, text=True, check=True
-            )
+        # Restore the original remote URL if it was modified
+        if auth_method == "https":
+            run_subprocess(['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url])
             logging.debug("Restored original remote URL.")
             print("Restored original remote URL.")
-    except subprocess.CalledProcessError as cpe:
-        logging.error(f"Subprocess error: {cpe.stderr}")
-        print(f"Error: Subprocess error: {cpe.stderr}")
-        if remote_modified:
-            # Attempt to restore the original remote URL
-            try:
-                subprocess.run(
-                    ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
-                    capture_output=True, text=True, check=True
-                )
-                logging.debug("Restored original remote URL after subprocess error.")
-                print("Restored original remote URL.")
-            except Exception as e_restore:
-                logging.error(f"Failed to restore remote URL: {e_restore}")
-                print(f"Error: Failed to restore remote URL: {e_restore}")
+
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        print(f"Error: {e}")
-        if 'remote_modified' in locals() and remote_modified:
+        logging.error(f"Failed during git_commit_and_force_push: {e}")
+        print(f"Error: Failed during git_commit_and_force_push: {e}")
+        sys.exit(1)
+
+def upload_files_via_git(repo_path, files_to_upload, target_subfolder):
+    """
+    Copies files to the target subfolder within the local repository and commits & pushes the changes.
+
+    Args:
+        repo_path (Path): Path to the local Git repository.
+        files_to_upload (list of Path): List of file paths to upload.
+        target_subfolder (str): Subfolder within the repository where files will be placed.
+    """
+    try:
+        logging.info("Starting the upload_files_via_git process.")
+        print("Starting the upload_files_via_git process.")
+
+        # Ensure the repository path exists
+        if not repo_path.exists() or not repo_path.is_dir():
+            logging.error(f"Repository path '{repo_path}' does not exist or is not a directory.")
+            print(f"Error: Repository path '{repo_path}' does not exist or is not a directory.")
+            return
+
+        # Define target directory within the repository
+        target_dir = repo_path / target_subfolder
+        target_dir.mkdir(parents=True, exist_ok=True)
+        logging.info(f"Ensured that target directory '{target_dir}' exists.")
+        print(f"Ensured that target directory '{target_dir}' exists.")
+
+        # Copy each file to the target directory
+        for file_path in files_to_upload:
+            if not file_path.exists() or not file_path.is_file():
+                logging.warning(f"File '{file_path}' does not exist or is not a file. Skipping.")
+                print(f"Warning: File '{file_path}' does not exist or is not a file. Skipping.")
+                continue
+
+            target_file = target_dir / file_path.name
+
             try:
-                subprocess.run(
-                    ['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url],
-                    capture_output=True, text=True, check=True
-                )
-                logging.debug("Restored original remote URL after unexpected error.")
-                print("Restored original remote URL.")
-            except Exception as e_restore:
-                logging.error(f"Failed to restore remote URL: {e_restore}")
-                print(f"Error: Failed to restore remote URL: {e_restore}")
+                shutil.copy2(file_path, target_file)
+                logging.info(f"Copied '{file_path}' to '{target_file}'.")
+                print(f"Copied '{file_path}' to '{target_file}'.")
+            except Exception as copy_error:
+                logging.error(f"Failed to copy '{file_path}' to '{target_file}': {copy_error}")
+                print(f"Error: Could not copy '{file_path}' to '{target_file}': {copy_error}")
+                continue  # Proceed with other files
+
+        # Prepare commit message
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        commit_message = f"Add/update files in '{target_subfolder}' on {timestamp}"
+        logging.info(f"Prepared commit message: '{commit_message}'")
+        print(f"Prepared commit message: '{commit_message}'")
+
+        # Commit and push changes using the existing git_commit_and_push function
+        git_commit_and_push(repo_path, commit_message)
+
+    except Exception as e:
+        logging.error(f"Unexpected error in upload_files_via_git: {e}")
+        print(f"Error: Unexpected error in upload_files_via_git: {e}")
+
+def upload_files(repo_path, files_to_upload, target_subfolder):
+    """
+    Copies specified files to the target subfolder within the local Git repository.
+
+    Args:
+        repo_path (Path): Path to the local Git repository.
+        files_to_upload (list of Path): List of file paths to upload.
+        target_subfolder (str): Subfolder within the repository where files will be placed.
+    """
+    try:
+        logging.info(f"Uploading files to '{target_subfolder}'.")
+        print(f"Uploading files to '{target_subfolder}'.")
+        
+        # Define target directory
+        target_dir = repo_path / target_subfolder
+        target_dir.mkdir(parents=True, exist_ok=True)
+        logging.debug(f"Ensured target directory '{target_dir}' exists.")
+        print(f"Ensured target directory '{target_dir}' exists.")
+
+        # Copy each file
+        for file_path in files_to_upload:
+            if not file_path.exists() or not file_path.is_file():
+                logging.warning(f"File '{file_path}' does not exist or is not a file. Skipping.")
+                print(f"Warning: File '{file_path}' does not exist or is not a file. Skipping.")
+                continue
+
+            destination = target_dir / file_path.name
+            try:
+                shutil.copy2(file_path, destination)
+                logging.info(f"Copied '{file_path}' to '{destination}'.")
+                print(f"Copied '{file_path}' to '{destination}'.")
+            except Exception as e:
+                logging.error(f"Failed to copy '{file_path}' to '{destination}': {e}")
+                print(f"Error: Could not copy '{file_path}' to '{destination}': {e}")
+    except Exception as e:
+        logging.error(f"Unexpected error during file upload: {e}")
+        print(f"Error: Unexpected error during file upload: {e}")
+        raise        
+
+def synchronize_repository(repo_path):
+    """
+    Pulls the latest changes from the remote repository to synchronize the local repository.
+
+    Args:
+        repo_path (Path): Path to the local Git repository.
+    """
+    try:
+        logging.info("Synchronizing local repository with remote.")
+        print("Synchronizing local repository with remote.")
+        pull_result = run_subprocess_with_retries(
+            ['git', '-C', str(repo_path), 'pull', 'origin', 'main', '--rebase']  # Change 'main' if your branch is different
+        )
+        if pull_result.returncode != 0:
+            logging.error(f"Failed to synchronize repository: {pull_result.stderr.strip()}")
+            print(f"Error: Failed to synchronize repository: {pull_result.stderr.strip()}")
+            sys.exit(1)
+        else:
+            logging.info("Repository synchronized successfully.")
+            print("Repository synchronized successfully.")
+    except Exception as e:
+        logging.error(f"Unexpected error during repository synchronization: {e}")
+        print(f"Error: Unexpected error during repository synchronization: {e}")
+        sys.exit(1)
