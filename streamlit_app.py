@@ -350,7 +350,12 @@ def main_app():
         # Create Folium map
         oak_park_center = [41.885, -87.78]
         crime_map = folium.Map(location=oak_park_center, zoom_start=13)
-        marker_cluster = MarkerCluster().add_to(crime_map)
+        marker_cluster = MarkerCluster(
+            control=True,
+            showCoverageOnHover=True,
+            zoomToBoundsOnClick=True,
+        ).add_to(crime_map)
+
         for _, row in final_df.iterrows():
             complaint   = safe_field(row.get('Complaint #'))
             offense_val = safe_field(row.get('Offense'))
