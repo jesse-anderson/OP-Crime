@@ -957,8 +957,16 @@ def synchronize_repository(repo_path):
     try:
         logging.info("Synchronizing local repository with remote.")
         print("Synchronizing local repository with remote.")
+
+        # Stage + stash any changes
+        stash_command = ['git', '-C', str(repo_path), 'stash', 'push', '-u', '-m', 'Auto-stash before pull']
+        stash_result = subprocess.run(stash_command, capture_output=True, text=True)
+        if stash_result.returncode != 0:
+            logging.warning(f"Could not stash changes automatically. Output: {stash_result.stderr.strip()}")
+            print(f"Warning: Could not stash changes automatically. Output: {stash_result.stderr.strip()}")
+
         pull_result = run_subprocess(
-            ['git', '-C', str(repo_path), 'pull', 'origin', 'main', '--rebase']  # Change 'main' if your branch is different
+            ['git', '-C', str(repo_path), 'pull', 'origin', 'main', '--rebase']
         )
         if pull_result.returncode != 0:
             logging.error(f"Failed to synchronize repository: {pull_result.stderr.strip()}")
@@ -967,6 +975,15 @@ def synchronize_repository(repo_path):
         else:
             logging.info("Repository synchronized successfully.")
             print("Repository synchronized successfully.")
+
+        # Attempt to pop the stash
+        pop_command = ['git', '-C', str(repo_path), 'stash', 'pop']
+        pop_result = subprocess.run(pop_command, capture_output=True, text=True)
+        if pop_result.returncode != 0:
+            # This might indicate there were no stashes to pop or a conflict occurred
+            logging.warning(f"Could not pop stashed changes. Output: {pop_result.stderr.strip()}")
+            print(f"Warning: Could not pop stashed changes. Output: {pop_result.stderr.strip()}")
+
     except Exception as e:
         logging.error(f"Unexpected error during repository synchronization: {e}")
         print(f"Error: Unexpected error during repository synchronization: {e}")

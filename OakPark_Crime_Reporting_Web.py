@@ -38,7 +38,7 @@ from utils import (
 def main():
     start_time = time.time()
     start_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
+    
     # Determine the directory where this script resides
     script_dir = Path(__file__).parent.resolve()
 
@@ -51,7 +51,8 @@ def main():
     except FileNotFoundError as e:
         print(e)
         return
-    
+    github_repo_path = Path(os.getenv("GITHUB_REPO_OP_CRIME"))
+    synchronize_repository(github_repo_path)
     googlemaps_api_key = os.getenv("GOOGLEMAPS_API_KEY")
     # print(googlemaps_api_key)
     if not googlemaps_api_key:
@@ -355,17 +356,13 @@ def main():
 
     # Now we synchronize, upload files, and force-push changes:
     commit_message = f"Automated update on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-    github_repo_path = Path(os.getenv("GITHUB_REPO_OP_CRIME"))
 
-    # 1) Synchronize the local repository
-    synchronize_repository(github_repo_path)
-
-    # 2) Upload desired files (e.g., logs and error_rate file) to a target subfolder
+    # Upload desired files (e.g., logs and error_rate file) to a target subfolder
     files_to_upload = [log_file_path, error_rate_file]
     target_subfolder = "crime_map_outputs"  # Adjust as needed
     upload_files(github_repo_path, files_to_upload, target_subfolder)
 
-    # 3) Stage and force-push everything
+    #  Stage and force-push everything
     git_commit_and_force_push(github_repo_path, commit_message)
 
     print("daily crime map update process completed with forced Git push.")
