@@ -957,7 +957,7 @@ def synchronize_repository(repo_path):
     try:
         logging.info("Synchronizing local repository with remote.")
         print("Synchronizing local repository with remote.")
-        pull_result = run_subprocess_with_retries(
+        pull_result = run_subprocess(
             ['git', '-C', str(repo_path), 'pull', 'origin', 'main', '--rebase']  # Change 'main' if your branch is different
         )
         if pull_result.returncode != 0:

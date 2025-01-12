@@ -26,7 +26,9 @@ from utils import (
     get_lat_long,
     get_api_call_count,
     extract_year,
-    git_commit_and_push
+    git_commit_and_force_push, 
+    synchronize_repository,
+    upload_files
 )
 
 # Ensure you've downloaded stopwords once:
