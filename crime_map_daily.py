@@ -418,7 +418,7 @@ def main():
     synchronize_repository(repo_path_2)
     create_map_load_all(df)
     target_subfolder_1 = "OP-Crime-Maps"
-    target_subfolder_1 = "generated_maps"
+    target_subfolder_2 = "generated_maps"
     map_file_path = Path("map.html")  # The file we just generated
     commit_message = f"Automated map update on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
     # --- For the first repo ---
