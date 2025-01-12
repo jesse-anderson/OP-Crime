@@ -3,6 +3,14 @@ import pandas as pd
 import json
 from folium.plugins import MarkerCluster, HeatMap
 from datetime import datetime
+from pathlib import Path
+from utils import (
+    load_env_vars,
+    git_commit_and_force_push, 
+    synchronize_repository,
+    upload_files
+)
+import os
 
 def load_data():
     """
@@ -404,7 +412,29 @@ def create_map_load_all(df, output_html="map.html"):
 
 def main():
     df = load_data()
+    repo_path_1 = Path(os.getenv("GITHUB_REPO", "."))
+    repo_path_2 = Path(os.getenv("GITHUB_REPO_OP_CRIME", "."))
+    synchronize_repository(repo_path_1)
+    synchronize_repository(repo_path_2)
     create_map_load_all(df)
+    target_subfolder_1 = "OP-Crime-Maps"
+    target_subfolder_1 = "generated_maps"
+    map_file_path = Path("map.html")  # The file we just generated
+    commit_message = f"Automated map update on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    # --- For the first repo ---
+    try:
+        upload_files(repo_path_1, [map_file_path], target_subfolder_1)
+        git_commit_and_force_push(repo_path_1, commit_message)
+    except Exception as e:
+        print(f"Error uploading to first repo: {e}")
 
+    # --- For the second repo ---
+    try:
+        upload_files(repo_path_2, [map_file_path], target_subfolder_2)
+        git_commit_and_force_push(repo_path_2, commit_message)
+    except Exception as e:
+        print(f"Error uploading to second repo: {e}")
+
+    print("Finished pushing the generated map.html to both repositories.")
 if __name__ == "__main__":
     main()

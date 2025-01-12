@@ -12,4 +12,6 @@ source /home/pi/Desktop/venv/bin/activate
 # Run the Python scripts
 python OakPark_Crime_Reporting_Web.py >> /home/pi/Desktop/logs/OakPark_Crime_Reporting_Web.log 2>&1
 
+python crime_map_daily.py >> /home/pi/Desktop/logs/Daily_Map_Gen.log 2>&1
+
 deactivate
