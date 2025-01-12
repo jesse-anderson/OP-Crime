@@ -412,6 +412,12 @@ def create_map_load_all(df, output_html="map.html"):
 
 def main():
     df = load_data()
+    env_file_path = script_dir / "env_vars.txt"
+    try:
+        load_env_vars(env_file_path)
+    except FileNotFoundError as e:
+        print(f"[ERROR] {e}")
+        return
     repo_path_1 = Path(os.getenv("GITHUB_REPO", "."))
     repo_path_2 = Path(os.getenv("GITHUB_REPO_OP_CRIME", "."))
     synchronize_repository(repo_path_1)
