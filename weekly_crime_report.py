@@ -232,7 +232,7 @@ def create_folium_map_filtered_data(
     <h3 align="center" style="font-size:10px">
     <a href="https://jesse-anderson.net/">My Portfolio</a> |
     <a href="https://blog.jesse-anderson.net/">My Blog</a> |
-    <a href="https://blog.jesse-anderson.net/">Documentation</a> |
+    <a href="https://blog.jesse-anderson.net/posts/OP-Crime-Documentation/">Documentation</a> |
     <a href="mailto:jesse@jesse-anderson.net">Contact</a> |
     <a href="https://forms.gle/GnyaVwo1Vzm8nBH6A">
         Add me to Weekly Updates
@@ -431,7 +431,7 @@ def create_folium_map_cumulative(
     <h3 align="center" style="font-size:10px">
     <a href="https://jesse-anderson.net/">My Portfolio</a> |
     <a href="https://blog.jesse-anderson.net/">My Blog</a> |
-    <a href="https://blog.jesse-anderson.net/">Documentation</a> |
+    <a href="https://blog.jesse-anderson.net/posts/OP-Crime-Documentation/">Documentation</a> |
     <a href="mailto:jesse@jesse-anderson.net">Contact</a> |
     <a href="https://forms.gle/GnyaVwo1Vzm8nBH6A">
         Add me to Weekly Updates

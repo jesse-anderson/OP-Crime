@@ -351,11 +351,23 @@ def main():
 
     print("Finished processing.")
 
-    # Commit and push changes
+    # Now we synchronize, upload files, and force-push changes:
     commit_message = f"Automated update on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
     github_repo_path = Path(os.getenv("GITHUB_REPO_OP_CRIME"))
-    git_commit_and_push(github_repo_path, commit_message)
 
+    # 1) Synchronize the local repository
+    synchronize_repository(github_repo_path)
+
+    # 2) Upload desired files (e.g., logs and error_rate file) to a target subfolder
+    files_to_upload = [log_file_path, error_rate_file]
+    target_subfolder = "crime_map_outputs"  # Adjust as needed
+    upload_files(github_repo_path, files_to_upload, target_subfolder)
+
+    # 3) Stage and force-push everything
+    git_commit_and_force_push(github_repo_path, commit_message)
+
+    print("daily crime map update process completed with forced Git push.")
+    logging.info("daily crime map update process completed with forced Git push.")
 if __name__ == '__main__':
     # Configure logging
     script_dir = Path(__file__).parent.resolve()  # Ensure log file is in script directory
