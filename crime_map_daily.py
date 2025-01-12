@@ -412,6 +412,7 @@ def create_map_load_all(df, output_html="map.html"):
 
 def main():
     df = load_data()
+    script_dir = Path(__file__).parent.resolve()
     env_file_path = script_dir / "env_vars.txt"
     try:
         load_env_vars(env_file_path)
