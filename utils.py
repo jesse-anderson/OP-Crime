@@ -740,6 +740,20 @@ def get_file_sha(repo_owner, repo_name, file_path, github_pat):
 #         logging.error(f"Failed to upload files to GitHub: {e}")
 #         print(f"[ERROR] Could not upload files to GitHub: {e}")
 
+def abort_incomplete_rebase(repo_path):
+    """
+    Aborts any ongoing rebase in the specified repository.
+    
+    Args:
+        repo_path (Path): Path to the local Git repository.
+    """
+    rebase_merge = repo_path / ".git" / "rebase-merge"
+    if rebase_merge.exists():
+        logging.warning("Detected an incomplete rebase. Aborting it.")
+        print("Detected an incomplete rebase. Aborting it.")
+        run_subprocess(['git', '-C', str(repo_path), 'rebase', '--abort'])
+
+
 def run_subprocess(command, check=True):
     """
     Runs a subprocess command and returns the result.
@@ -756,13 +770,30 @@ def run_subprocess(command, check=True):
         logging.debug(f"Command {' '.join(command)} executed successfully.")
         return result
     except subprocess.CalledProcessError as e:
-        logging.error(f"Command {' '.join(command)} failed with error: {e.stderr.strip()}")
-        print(f"Error: Command {' '.join(command)} failed with error: {e.stderr.strip()}")
-        raise
+        error_message = e.stderr.strip()
+        logging.error(f"Command {' '.join(command)} failed with error: {error_message}")
+        print(f"Error: Command {' '.join(command)} failed with error: {error_message}")
+        
+        # Specific handling for rebase-merge directory issue
+        if "rebase-merge" in error_message:
+            repo_path = Path(command[2])  # Assuming 'git -C <repo_path> ...'
+            abort_incomplete_rebase(repo_path)
+            # Retry the command once after aborting
+            try:
+                result = subprocess.run(command, capture_output=True, text=True, check=check)
+                logging.debug(f"Command {' '.join(command)} executed successfully after aborting rebase.")
+                return result
+            except subprocess.CalledProcessError as e_retry:
+                logging.error(f"Retrying command {' '.join(command)} failed with error: {e_retry.stderr.strip()}")
+                print(f"Error: Retrying command {' '.join(command)} failed with error: {e_retry.stderr.strip()}")
+                raise
+        else:
+            raise
     except Exception as e:
         logging.error(f"Unexpected error running command {' '.join(command)}: {e}")
         print(f"Error: Unexpected error running command {' '.join(command)}: {e}")
         raise
+
 
 def git_commit_and_force_push(repo_path, commit_message):
     """
@@ -950,13 +981,16 @@ def upload_files(repo_path, files_to_upload, target_subfolder):
 def synchronize_repository(repo_path):
     """
     Pulls the latest changes from the remote repository to synchronize the local repository.
-
+    
     Args:
         repo_path (Path): Path to the local Git repository.
     """
     try:
         logging.info("Synchronizing local repository with remote.")
         print("Synchronizing local repository with remote.")
+        
+        # Abort any incomplete rebase
+        abort_incomplete_rebase(repo_path)
 
         # Stage + stash any changes
         stash_command = ['git', '-C', str(repo_path), 'stash', 'push', '-u', '-m', 'Auto-stash before pull']
