@@ -15589,5 +15589,83 @@
     "all_error_free": true,
     "file_size": 31203,
     "last_modified": 1736535604.4858584
+  },
+  "summary-report-16-january-2025.pdf": {
+    "complaints": [
+      "25-00220",
+      "25-00224",
+      "25-00238",
+      "25-00240",
+      "25-00219",
+      "25-00242",
+      "25-00248",
+      "25-00245"
+    ],
+    "all_error_free": true,
+    "file_size": 32077,
+    "last_modified": 1737069998.9959495
+  },
+  "summary-report-15-january-2025.pdf": {
+    "complaints": [
+      "25-00205",
+      "25-00207",
+      "25-00219",
+      "25-00223"
+    ],
+    "all_error_free": true,
+    "file_size": 28173,
+    "last_modified": 1737069999.9750473
+  },
+  "weekend-summary-report-10january2025-13january2025.pdf": {
+    "complaints": [
+      "25-00136",
+      "25-00157",
+      "25-00160",
+      "25-00186",
+      "25-00189"
+    ],
+    "all_error_free": true,
+    "file_size": 31299,
+    "last_modified": 1737070000.4746451
+  },
+  "summary_5jul2022.pdf": {
+    "complaints": [
+      "22-03898",
+      "22-03896",
+      "22-03901"
+    ],
+    "all_error_free": true,
+    "file_size": 137785,
+    "last_modified": 1737070049.666497
+  },
+  "weekend_summary_report_06_mar_-_09_mar_2020.pdf": {
+    "complaints": [
+      "20-01252"
+    ],
+    "all_error_free": true,
+    "file_size": 48754,
+    "last_modified": 1737070127.1804652
+  },
+  "weekend_summary_report_07_jan_2019.pdf": {
+    "complaints": [
+      "19-00059",
+      "19-00060",
+      "19-00064",
+      "19-00071",
+      "19-00076",
+      "19-00076",
+      "19-00081",
+      "19-00087",
+      "19-00084",
+      "19-00083",
+      "19-00088",
+      "19-00089",
+      "19-00100",
+      "19-00098",
+      "19-00093"
+    ],
+    "all_error_free": true,
+    "file_size": 34338,
+    "last_modified": 1737070153.256694
   }
 }

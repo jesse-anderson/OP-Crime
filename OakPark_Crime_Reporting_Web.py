@@ -67,7 +67,7 @@ def main():
         return
 
     # Define paths relative to script directory
-    base_url = 'https://www.oak-park.us/village-services/police-department/police-activity-summary-reports'
+    base_url = 'https://www.oak-park.us/Public-Safety/Police-Department/Reports-Maps/Activity-Reports'
     download_dir = script_dir / 'downloaded_pdfs'
     data_dir = script_dir / 'data'
     cache_dir = script_dir / 'cache'
