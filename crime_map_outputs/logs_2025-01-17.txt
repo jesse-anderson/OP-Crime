@@ -1,8 +1,12 @@
-Start Time: 2025-01-17 06:00:02
-End Time: 2025-01-17 06:07:48
-Total Processing Time: 465.90 seconds
-Total complaints processed: 0
-Number of incorrectly parsed dates (1900-01-01): 0
-Number of complaints with errors (Error Free = 0): 0
+
+[DEBUG] Error block for Complaint # 25-00272:
+COMPLAINT NUMBER: 25-00272 OFFENSE: CRIMINAL DAMAGE TO PROPERTY ARREST DATE(S) 17-JAN-25 TIME(S): 0323 HRS. LOCATION: 0 – 100 BLOCK OF ERIE VICTIM/ADDRESS: WEST SUBURBAN HOSPITAL / 3 ERIE CO URT NARRATIVE: HOUSE, DEONTE (M/38) OF THE 1100 BLOCK OF N. LOCKWOOD, CHICAGO, IL. WAS ARRESTED FOR CRIMINAL DA MAGE TO PROPERTY AND RECKLESS CONDUCT.
+
+Start Time: 2025-01-17 13:00:02
+End Time: 2025-01-17 13:07:55
+Total Processing Time: 472.87 seconds
+Total complaints processed: 6
+Number of incorrectly parsed dates (1900-01-01): 1
+Number of complaints with errors (Error Free = 0): 1
 Number of duplicate complaint numbers: 0
 Total Geocoding API calls made: 0
