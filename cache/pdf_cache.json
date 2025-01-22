@@ -15693,5 +15693,16 @@
     "all_error_free": true,
     "file_size": 31761,
     "last_modified": 1737504010.5714822
+  },
+  "summary-report-22-january-2025.pdf": {
+    "complaints": [
+      "25-00319",
+      "25-00175",
+      "25-00318",
+      "25-00340"
+    ],
+    "all_error_free": true,
+    "file_size": 28300,
+    "last_modified": 1737572409.4918354
   }
 }
