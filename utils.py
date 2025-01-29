@@ -814,28 +814,25 @@ def git_commit_and_force_push(repo_path, commit_message):
             return
 
         # Stage all changes
-        run_subprocess(['git', '-C', str(repo_path), 'add', '-A'])
+        run_subprocess(['git', 'add', '-A'], repo_path)
         logging.info("Staged all changes.")
         print("Staged all changes.")
 
         # Check if there are any changes to commit
-        status_result = subprocess.run(
-            ['git', '-C', str(repo_path), 'status', '--porcelain'],
-            capture_output=True, text=True
-        )
+        status_result = run_subprocess(['git', 'status', '--porcelain'], repo_path)
         if not status_result.stdout.strip():
             logging.info("No changes to commit.")
             print("No changes to commit.")
             return
 
         # Commit changes
-        run_subprocess(['git', '-C', str(repo_path), 'commit', '-m', commit_message])
+        run_subprocess(['git', 'commit', '-m', commit_message], repo_path)
         logging.info(f"Committed changes with message: '{commit_message}'.")
         print(f"Committed changes with message: '{commit_message}'.")
 
         # Get the original remote URL
-        original_remote = run_subprocess(['git', '-C', str(repo_path), 'remote', 'get-url', 'origin'])
-        original_remote_url = original_remote.stdout.strip()
+        original_remote_result = run_subprocess(['git', 'remote', 'get-url', 'origin'], repo_path)
+        original_remote_url = original_remote_result.stdout.strip()
         logging.debug(f"Original remote URL: {original_remote_url}")
         print("Original remote URL retrieved.")
 
@@ -851,30 +848,46 @@ def git_commit_and_force_push(repo_path, commit_message):
             print("Error: Unsupported remote URL format.")
             return
 
-        # If HTTPS, modify remote URL to include PAT
+        # If HTTPS, modify remote URL to include PAT and username
         if auth_method == "https":
+            github_username = os.getenv("GITHUB_USERNAME")
             github_pat = os.getenv("GITHUB_PAT")
+
+            if not github_username:
+                logging.error("GITHUB_USERNAME not found in environment variables.")
+                print("Error: GITHUB_USERNAME not found in environment variables.")
+                return
+
             if not github_pat:
                 logging.error("GITHUB_PAT not found in environment variables.")
                 print("Error: GITHUB_PAT not found in environment variables.")
                 return
 
-            # Modify the remote URL to include the PAT
-            remote_with_pat = re.sub(r'^https://', f'https://{github_pat}@', original_remote_url)
-            logging.debug(f"Modified remote URL with PAT: {remote_with_pat}")
-            print("Remote URL updated with PAT.")
+            # Encode username and PAT to handle special characters
+            github_username_encoded = re.escape(github_username)
+            github_pat_encoded = re.escape(github_pat)
 
-            # Set the remote URL with PAT
-            run_subprocess(['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', remote_with_pat])
+            # Parse the original URL to safely inject credentials
+            parsed_url = urlparse(original_remote_url)
+            netloc = f"{github_username_encoded}:{github_pat_encoded}@{parsed_url.hostname}"
+            if parsed_url.port:
+                netloc += f":{parsed_url.port}"
+            remote_with_credentials = urlunparse(parsed_url._replace(netloc=netloc))
+
+            logging.debug(f"Modified remote URL with credentials: {remote_with_credentials}")
+            print("Remote URL updated with credentials.")
+
+            # Set the remote URL with credentials
+            run_subprocess(['git', 'remote', 'set-url', 'origin', remote_with_credentials], repo_path)
 
         # Force push to remote
-        run_subprocess(['git', '-C', str(repo_path), 'push', 'origin', 'main', '--force'])
+        run_subprocess(['git', 'push', 'origin', 'main', '--force'], repo_path)
         logging.info("Force pushed changes to remote repository.")
         print("Force pushed changes to remote repository.")
 
         # Restore the original remote URL if it was modified
         if auth_method == "https":
-            run_subprocess(['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url])
+            run_subprocess(['git', 'remote', 'set-url', 'origin', original_remote_url], repo_path)
             logging.debug("Restored original remote URL.")
             print("Restored original remote URL.")
 

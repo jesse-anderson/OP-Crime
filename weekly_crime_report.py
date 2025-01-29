@@ -287,7 +287,7 @@ def create_folium_map_filtered_data(
             <li>This tool is for <strong>demonstration purposes only</strong>.</li>
             <li>The data originated from publicly available Oak Park Police Department PDF files.
                 View the official site here: 
-                <a href="https://www.oak-park.us/village-services/police-department"
+                <a href="https://www.oak-park.us/Public-Safety/Police-Department"
                    target="_blank">Oak Park Police Department</a>.</li>
             <li>During parsing, <strong>~10%</strong> of complaints were <strong>omitted</strong> 
                 due to parsing issues; thus the data is <strong>incomplete</strong>.</li>
@@ -486,7 +486,7 @@ def create_folium_map_cumulative(
             <li>This tool is for <strong>demonstration purposes only</strong>.</li>
             <li>The data originated from publicly available Oak Park Police Department PDF files.
                 View the official site here: 
-                <a href="https://www.oak-park.us/village-services/police-department"
+                <a href="https://www.oak-park.us/Public-Safety/Police-Department"
                    target="_blank">Oak Park Police Department</a>.</li>
             <li>During parsing, <strong>~10%</strong> of complaints were <strong>omitted</strong> 
                 due to parsing issues; thus the data is <strong>incomplete</strong>.</li>
@@ -676,7 +676,7 @@ Important Legal Disclaimer
 By using this demonstrative research tool, you acknowledge and agree:
 
 - This tool is for demonstration purposes only.
-- The data originated from publicly available Oak Park Police Department PDF files. View the official site here: https://www.oak-park.us/village-services/police-department.
+- The data originated from publicly available Oak Park Police Department PDF files. View the official site here: https://www.oak-park.us/Public-Safety/Police-Department.
 - During parsing, ~10% of total complaints since 2018 were omitted due to parsing issues; thus the data is incomplete.
 - The official and complete PDF files remain with the Oak Park Police Department.
 - You will not hold the author liable for any decisions—formal or informal—based on this tool.
@@ -699,7 +699,6 @@ Additional Features:
 
 Additional Resources:
 - CSV Data: {body_text['csv_url']}
-- Streamlit Application: https://op-crime.streamlit.app/
 
 Best,
 Crime Report Bot
