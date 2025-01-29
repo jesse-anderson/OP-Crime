@@ -387,7 +387,7 @@ def download_pdf(url, download_dir, redownload=False):
         print(f"Failed to download '{url}': {e}")
         return None
 
-def extract_data_from_pdf(file_path, gmaps_client, location_cache, reprocess_locs, existing_complaint_numbers):
+def extract_data_from_pdf(file_path, gmaps_client, location_cache, reprocess_locs, existing_complaint_numbers,pdf_url):
     """
     Extract data from PDF, returning (report, log_entries).
     Only processes complaints not already in existing_complaint_numbers.
@@ -504,19 +504,20 @@ def extract_data_from_pdf(file_path, gmaps_client, location_cache, reprocess_loc
                 parsed_date = "1900-01-01"
                 logging.debug(f"Parsed Date: {parsed_date}")
 
-            filename=os.path.basename(file_path)
-            # Extract the year from the filename
-            year = extract_year(filename)
-            if year:
-                base_url = f"{base_url_static}{year}/"
-                link = f"{base_url}{filename}"
-                filename = link #crappy workaround, but whatever.
-            else:
-                # Handle cases where the year isn't found or is out of range
-                link = "#"
-                logging.warning(f"Year not found or out of range in filename: {filename}. Defaulting to filename...")
-                filename = os.path.basename(file_path)
-
+            #TODO clean up processing. Using pdf_url since its faster
+            # filename=os.path.basename(file_path)
+            # # Extract the year from the filename
+            # year = extract_year(filename)
+            # if year:
+            #     base_url = f"{base_url_static}{year}/"
+            #     link = f"{base_url}{filename}"
+            #     filename = link #crappy workaround, but whatever.
+            # else:
+            #     # Handle cases where the year isn't found or is out of range
+            #     link = "#"
+            #     logging.warning(f"Year not found or out of range in filename: {filename}. Defaulting to filename...")
+            #     filename = os.path.basename(file_path)
+            filename = pdf_url
             # Create entry
             entry = {
                 "Date": parsed_date,

@@ -133,7 +133,7 @@ def main():
     for pdf_link in pdf_links:
         pdf_url = pdf_link
         pdf_path = download_pdf(pdf_url, download_dir, redownload=redownload)
-
+        # print(pdf_url)
         if not pdf_path:
             continue  # Skip if download failed
 
@@ -175,7 +175,8 @@ def main():
             gmaps_client,
             location_cache,
             reprocess_locs,
-            existing_complaint_numbers  # Pass existing complaint numbers
+            existing_complaint_numbers,  # Pass existing complaint numbers
+            pdf_url
         )
 
         if not report_data:
