@@ -413,24 +413,24 @@ def extract_data_from_pdf(file_path, gmaps_client, location_cache, reprocess_loc
     # Log a preview of the cleaned text
     logging.debug(f"Cleaned Text Preview (first 500 chars): {text[:500]}...")
     
-    complaint_pattern = r"COMPLAINT NUMBER:\s*(\d{2}-\d{5})"
-    offense_pattern   = r"OFFENSE:\s+([A-Z\s]+)"
+    complaint_pattern = r"COMPLAINT NUMBER:\s*(\d{2}-\d{5})(?=\s+OFFENSE:|$)"
+    offense_pattern = r"OFFENSE:\s+(.*?)\s+DATE\(S\):"
     date_pattern      = r"DATE\(S\)\s*:?\s+([A-Za-z0-9\s&\-–—/]+?)(?=\s+TIME\(S\)|\s+$)"
     time_pattern      = r"TIME\(S\):\s+([\d:HRS\s\-–—]+)"
     location_pattern  = r"LOCATION:\s+(.+?)(?=\s+(?:VICTIM/ADDRESS|NARRATIVE|NARRITIVE|NARRTIVE))"
     victim_pattern    = r"VICTIM/ADDRESS:\s+(.+?)(?=\s+NARRATIVE|NARRITIVE|NARRTIVE)"
     narrative_pattern = r"NARR(?:ATIVE|ITIVE|TIVE)\s*:\s+(.+?)(?=COMPLAINT NUMBER|$)"
 
-    complaints = re.findall(complaint_pattern, text)
-    offenses   = re.findall(offense_pattern, text)
-    dates      = re.findall(date_pattern, text)
-    times      = re.findall(time_pattern, text)
-    locations  = re.findall(location_pattern, text)
-    victims    = re.findall(victim_pattern, text)
-    narratives = re.findall(narrative_pattern, text)
+    complaints = re.findall(complaint_pattern, text, flags=re.DOTALL)
+    offenses   = re.findall(offense_pattern,   text, flags=re.DOTALL)
+    dates      = re.findall(date_pattern,      text)
+    times      = re.findall(time_pattern,      text)
+    locations  = re.findall(location_pattern,  text, flags=re.DOTALL)
+    victims    = re.findall(victim_pattern,    text, flags=re.DOTALL)
+    narratives = re.findall(narrative_pattern, text, flags=re.DOTALL)
     
     # Clean offenses
-    offenses = [o.replace("DATE", "").strip() for o in offenses]
+    # offenses = [o.replace("DATE", "").strip() for o in offenses]
     
     report = []
     log_entries = []
