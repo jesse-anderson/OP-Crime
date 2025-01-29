@@ -79,7 +79,7 @@ def main():
     cache_path = cache_dir / 'pdf_cache.json'
     location_cache_path = cache_dir / 'location_cache.json'
     reprocess = True
-    redownload = True
+    redownload = False
     reprocess_locs = False    # Flag for reprocessing locations
 
     # Create download directory if it doesn't exist
