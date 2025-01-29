@@ -799,7 +799,8 @@ def run_subprocess(command, check=True):
 
 def git_commit_and_force_push(repo_path, commit_message):
     """
-    Stages all changes, commits with the provided message, and force pushes to the remote repository.
+    Stages all changes, commits with the provided message, and force pushes
+    to the remote repository.
 
     Args:
         repo_path (Path): Path to the local Git repository.
@@ -816,24 +817,24 @@ def git_commit_and_force_push(repo_path, commit_message):
             return
 
         # Stage all changes
-        run_subprocess(['git', 'add', '-A'], repo_path)
+        run_subprocess(['git', '-C', str(repo_path), 'add', '-A'])
         logging.info("Staged all changes.")
         print("Staged all changes.")
 
         # Check if there are any changes to commit
-        status_result = run_subprocess(['git', 'status', '--porcelain'], repo_path)
+        status_result = run_subprocess(['git', '-C', str(repo_path), 'status', '--porcelain'])
         if not status_result.stdout.strip():
             logging.info("No changes to commit.")
             print("No changes to commit.")
             return
 
         # Commit changes
-        run_subprocess(['git', 'commit', '-m', commit_message], repo_path)
+        run_subprocess(['git', '-C', str(repo_path), 'commit', '-m', commit_message])
         logging.info(f"Committed changes with message: '{commit_message}'.")
         print(f"Committed changes with message: '{commit_message}'.")
 
         # Get the original remote URL
-        original_remote_result = run_subprocess(['git', 'remote', 'get-url', 'origin'], repo_path)
+        original_remote_result = run_subprocess(['git', '-C', str(repo_path), 'remote', 'get-url', 'origin'])
         original_remote_url = original_remote_result.stdout.strip()
         logging.debug(f"Original remote URL: {original_remote_url}")
         print("Original remote URL retrieved.")
@@ -880,16 +881,16 @@ def git_commit_and_force_push(repo_path, commit_message):
             print("Remote URL updated with credentials.")
 
             # Set the remote URL with credentials
-            run_subprocess(['git', 'remote', 'set-url', 'origin', remote_with_credentials], repo_path)
+            run_subprocess(['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', remote_with_credentials])
 
         # Force push to remote
-        run_subprocess(['git', 'push', 'origin', 'main', '--force'], repo_path)
+        run_subprocess(['git', '-C', str(repo_path), 'push', 'origin', 'main', '--force'])
         logging.info("Force pushed changes to remote repository.")
         print("Force pushed changes to remote repository.")
 
         # Restore the original remote URL if it was modified
         if auth_method == "https":
-            run_subprocess(['git', 'remote', 'set-url', 'origin', original_remote_url], repo_path)
+            run_subprocess(['git', '-C', str(repo_path), 'remote', 'set-url', 'origin', original_remote_url])
             logging.debug("Restored original remote URL.")
             print("Restored original remote URL.")
 
@@ -897,6 +898,7 @@ def git_commit_and_force_push(repo_path, commit_message):
         logging.error(f"Failed during git_commit_and_force_push: {e}")
         print(f"Error: Failed during git_commit_and_force_push: {e}")
         sys.exit(1)
+
 
 def upload_files_via_git(repo_path, files_to_upload, target_subfolder):
     """
