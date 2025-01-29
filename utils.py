@@ -22,6 +22,7 @@ import shutil
 from datetime import datetime, timedelta
 import base64
 import sys
+from urllib.parse import urlparse, urlunparse
 # import folium
 
 # Initialize the API call counter
