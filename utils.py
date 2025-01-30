@@ -866,9 +866,9 @@ def git_commit_and_force_push(repo_path, commit_message):
                 print("Error: GITHUB_PAT not found in environment variables.")
                 return
 
-            # Encode username and PAT to handle special characters
-            github_username_encoded = re.escape(github_username)
-            github_pat_encoded = re.escape(github_pat)
+            # Encode username and PAT
+            github_username_encoded = github_username
+            github_pat_encoded = github_pat
 
             # Parse the original URL to safely inject credentials
             parsed_url = urlparse(original_remote_url)
