@@ -1,0 +1,12 @@
+
+[DEBUG] Error block for Complaint # 25-00595:
+COMPLAINT NUMBER: 25-00595 OFFENSE: RETAIL THEFT ARREST DATE(S) 04-FEB-25 TIME(S): 2043 HRS. LOCATION: 900 BLOCK OF S. HARLEM, FOREST PARK VICTIM/ADDRESS: JEWEL FOOD STORE / 7036 ROOSEVELT NARRATIVE: GRIFFIN, CHARLES (M/34) OF THE 800 BLO CK OF S. PULASKI, CHICAGO, IL. WAS ARRESTED FOR RETAIL THEFT.
+
+Start Time: 2025-02-05 13:00:02
+End Time: 2025-02-05 13:00:16
+Total Processing Time: 14.02 seconds
+Total complaints processed: 4
+Number of incorrectly parsed dates (1900-01-01): 0
+Number of complaints with errors (Error Free = 0): 1
+Number of duplicate complaint numbers: 0
+Total Geocoding API calls made: 1
