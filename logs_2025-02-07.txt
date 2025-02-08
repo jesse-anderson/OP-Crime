@@ -1,12 +1,8 @@
-
-[DEBUG] Error block for Complaint # 25-00639:
-COMPLAINT NUMBER: 25-00639 OFFENSE: WARRANT / RESISTING ARREST DATE(S) 06-FEB-25 TIME(S): 2008 HRS. LOCATION: 400 BLOCK OF N. RIDGELAND VICTIM/ADDRESS: STATE OF ILLINOIS NARRATIVE: JACKSON, TRESHAUN (M/28) OF THE 400 BL OCK OF N. RIDGELAND, OAK PARK, IL. WAS ARRESTED ON AN ACTIVE WARRANT OUT OF DUPAGE COUNTY FOR TRAFFIC AND RESISTING ARREST.
-
-Start Time: 2025-02-07 13:00:02
-End Time: 2025-02-07 13:00:15
-Total Processing Time: 12.83 seconds
-Total complaints processed: 8
+Start Time: 2025-02-07 18:00:02
+End Time: 2025-02-07 18:00:09
+Total Processing Time: 6.84 seconds
+Total complaints processed: 0
 Number of incorrectly parsed dates (1900-01-01): 0
-Number of complaints with errors (Error Free = 0): 1
+Number of complaints with errors (Error Free = 0): 0
 Number of duplicate complaint numbers: 0
 Total Geocoding API calls made: 0

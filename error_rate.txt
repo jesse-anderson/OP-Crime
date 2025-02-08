@@ -1,1 +1,1 @@
-error_rate = 12.5000 %
+error_rate = 0.0000 %
