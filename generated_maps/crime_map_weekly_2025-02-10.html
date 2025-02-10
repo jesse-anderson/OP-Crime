@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_f7b3781aa0e84513c64163b85c3db257 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+        
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.Default.css"/>
+    <script src="https://cdn.jsdelivr.net/gh/python-visualization/folium@main/folium/templates/leaflet_heat.min.js"></script>
+</head>
+<body>
+    
+    
+    <h3 align="center" style="font-size:20px"><b>Oak Park Crime Map</b></h3>
+    <br>
+    <h3 align="center" style="font-size:10px">
+    <a href="https://jesse-anderson.net/">My Portfolio</a> |
+    <a href="https://blog.jesse-anderson.net/">My Blog</a> |
+    <a href="https://blog.jesse-anderson.net/posts/OP-Crime-Documentation/">Documentation</a> |
+    <a href="mailto:jesse@jesse-anderson.net">Contact</a> |
+    <a href="https://forms.gle/GnyaVwo1Vzm8nBH6A">
+        Add me to Weekly Updates
+    </a> |
+    <a href="https://jesse-anderson.net/OP-Crime-Maps/crime_map_cumulative.html">
+    Comp. Map 
+    </a>
+    </h3>
+    
+    <style>
+    /* Full-page overlay styling */
+    #disclaimerOverlay {
+      position: fixed;
+      z-index: 9999; /* On top of everything */
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.95);
+      color: #333;
+      display: block; /* Visible by default */
+      overflow: auto;
+      text-align: center;
+      padding-top: 100px;
+      font-family: Arial, sans-serif;
+    }
+    #disclaimerContent {
+      background: #f9f9f9;
+      border: 1px solid #ccc;
+      display: inline-block;
+      padding: 20px;
+      max-width: 800px;
+      text-align: left;
+    }
+    #acceptButton {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    </style>
+
+    <div id="disclaimerOverlay">
+      <div id="disclaimerContent">
+        <h2>Important Legal Disclaimer</h2>
+        <p><strong>By using this demonstrative research tool, you acknowledge and agree:</strong></p>
+        <ul>
+            <li>This tool is for <strong>demonstration purposes only</strong>.</li>
+            <li>The data originated from publicly available Oak Park Police Department PDF files.
+                View the official site here: 
+                <a href="https://www.oak-park.us/Public-Safety/Police-Department"
+                   target="_blank">Oak Park Police Department</a>.</li>
+            <li>During parsing, <strong>~10%</strong> of complaints were <strong>omitted</strong> 
+                due to parsing issues; thus the data is <strong>incomplete</strong>.</li>
+            <li>The <strong>official</strong> and <strong>complete</strong> PDF files remain 
+                with the Oak Park Police Department.</li>
+            <li>You <strong>will not hold</strong> the author <strong>liable</strong> for <strong>any</strong> 
+                decisions—formal or informal—based on this tool.</li>
+            <li>This tool <strong>should not</strong> be used in <strong>any</strong> official or unofficial 
+                <strong>decision-making</strong>.</li>
+        </ul>
+        <p><strong>By continuing, you indicate your acceptance of these terms 
+           and disclaim all liability.</strong></p>
+        <hr/>
+        <button id="acceptButton" onclick="hideOverlay()">I Accept</button>
+      </div>
+    </div>
+
+    <script>
+    function hideOverlay() {
+      var overlay = document.getElementById('disclaimerOverlay');
+      overlay.style.display = 'none'; 
+    }
+    </script>
+    
+    
+    <style>
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: #f1f1f1;
+            color: #555;
+            text-align: center;
+            padding: 0px 0;
+            font-size: 10px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            z-index: 10000; /* Ensure it's on top */
+        }
+        .footer a {
+            color: #555;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <div class="footer">
+        Copyright &copy; 2025 Jesse Anderson. All rights reserved.
+
+    </div>
+    
+    
+            <div class="folium-map" id="map_f7b3781aa0e84513c64163b85c3db257" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_f7b3781aa0e84513c64163b85c3db257 = L.map(
+                "map_f7b3781aa0e84513c64163b85c3db257",
+                {
+                    center: [41.885, -87.78],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 13,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_606974c6349059da771471c1e1572b75 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_606974c6349059da771471c1e1572b75.addTo(map_f7b3781aa0e84513c64163b85c3db257);
+        
+    
+            var feature_group_d02a59857bfa4b5755da86973eb1347a = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var marker_cluster_39efbf737c8a1e3cd68be680645d39c2 = L.markerClusterGroup(
+                {
+}
+            );
+        
+    
+            var marker_8e7560346f8ecddf7d49ba7d8b843d01 = L.marker(
+                [41.879339, -87.80353099999999],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_94f59c2878f4c2bfd2445bef375b7407 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_8e7560346f8ecddf7d49ba7d8b843d01.setIcon(icon_94f59c2878f4c2bfd2445bef375b7407);
+        
+    
+        var popup_6785ee4681460d562f0eb0a034223e97 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_116bf5224ff86d5accd3af4a04e70263 = $(`<div id="html_116bf5224ff86d5accd3af4a04e70263" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00621<br/>             <b>Offense:</b> WARRANT ARREST<br/>             <b>Date:</b> 2025-02-06<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 0711 HRS<br/>               <b>Location:</b> 500 BLOCK OF S. MAPLE<br/>               <b>Victim:</b> STATE OF ILLINOIS<br/>               <b>Narrative:</b> ramirez, oscar r. (m/29) of the 2800 b lock of s. kostner, chicago, il. was arrested on an active war rant out of cook county for domestic battery.<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-07-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_6785ee4681460d562f0eb0a034223e97.setContent(html_116bf5224ff86d5accd3af4a04e70263);
+            
+        
+
+        marker_8e7560346f8ecddf7d49ba7d8b843d01.bindPopup(popup_6785ee4681460d562f0eb0a034223e97)
+        ;
+
+        
+    
+    
+            var marker_ede846bb167ab31f19d867dfecd7638c = L.marker(
+                [41.8918139, -87.7782988],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_143cc2cef7dfd1957ab9fba6aef32d22 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_ede846bb167ab31f19d867dfecd7638c.setIcon(icon_143cc2cef7dfd1957ab9fba6aef32d22);
+        
+    
+        var popup_22b902a3c9d40daac5b7219c5d296b7a = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_6626f6bc789f12d790c430fd2ba2854b = $(`<div id="html_6626f6bc789f12d790c430fd2ba2854b" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00624<br/>             <b>Offense:</b> THEFT FROM MOTOR VEHICLE<br/>             <b>Date:</b> 2025-02-06<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 1900 - 0730 HRS<br/>               <b>Location:</b> 0 – 100 BLOCK OF ERIE<br/>               <b>Victim:</b> GRAYSLAKE RESIDENT<br/>               <b>Narrative:</b> person(s) unknown by unknown means rem oved the catalytic converter from the victim’s 2016 hyundai santa fe. estimated loss $1,000.00. oak park police department *individuals listed have been charged with a crimin al offense and have a pending court date. all defendants are considered innocent until proven gui lty in a court of law.<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-07-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_22b902a3c9d40daac5b7219c5d296b7a.setContent(html_6626f6bc789f12d790c430fd2ba2854b);
+            
+        
+
+        marker_ede846bb167ab31f19d867dfecd7638c.bindPopup(popup_22b902a3c9d40daac5b7219c5d296b7a)
+        ;
+
+        
+    
+    
+            var marker_ad2eacb1d40bcff8f6af3e4e28241523 = L.marker(
+                [41.8918139, -87.7782988],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_dd84687d1de77699bdaba7f5586bad1a = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_ad2eacb1d40bcff8f6af3e4e28241523.setIcon(icon_dd84687d1de77699bdaba7f5586bad1a);
+        
+    
+        var popup_a66e24a80bd65d9e7bded5cb1d9ebbaa = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_43dd6bd910b81e32b9b52cb4fa82669b = $(`<div id="html_43dd6bd910b81e32b9b52cb4fa82669b" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00623<br/>             <b>Offense:</b> THEFT FROM MOTOR VEHICLE<br/>             <b>Date:</b> 2025-02-06<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 2100 - 0730 HRS<br/>               <b>Location:</b> 0 – 100 BLOCK OF ERIE<br/>               <b>Victim:</b> CHICAGO RESIDENT<br/>               <b>Narrative:</b> person(s) unknown by unknown means rem oved the catalytic converter from the victim’s mitsubishi ou tlander. estimated loss $1,000.00<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-07-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_a66e24a80bd65d9e7bded5cb1d9ebbaa.setContent(html_43dd6bd910b81e32b9b52cb4fa82669b);
+            
+        
+
+        marker_ad2eacb1d40bcff8f6af3e4e28241523.bindPopup(popup_a66e24a80bd65d9e7bded5cb1d9ebbaa)
+        ;
+
+        
+    
+    
+            var marker_6468e59e3390c17a2a71701d80199b11 = L.marker(
+                [41.8869836, -87.7830967],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_6315254948f7f7f877f91704014a0fb0 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_6468e59e3390c17a2a71701d80199b11.setIcon(icon_6315254948f7f7f877f91704014a0fb0);
+        
+    
+        var popup_d777cda7ba62403980404474ee9bbabf = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_e55faa1c2c6b4bc99fa6e865e9fd7771 = $(`<div id="html_e55faa1c2c6b4bc99fa6e865e9fd7771" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00625<br/>             <b>Offense:</b> CRIMINAL DAMAGE TO PROPERTY<br/>             <b>Date:</b> 2025-02-06<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 2200 - 0808 HRS<br/>               <b>Location:</b> 200 BLOCK OF SOUTH BLVD.<br/>               <b>Victim:</b> CHICAGO RESIDENT<br/>               <b>Narrative:</b> person(s) unknown by means of a brick, shattered the window to the business. estimated damage $1,00 0.00<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-07-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_d777cda7ba62403980404474ee9bbabf.setContent(html_e55faa1c2c6b4bc99fa6e865e9fd7771);
+            
+        
+
+        marker_6468e59e3390c17a2a71701d80199b11.bindPopup(popup_d777cda7ba62403980404474ee9bbabf)
+        ;
+
+        
+    
+    
+            var marker_3815487adfbc484a55394deb1325467d = L.marker(
+                [41.8930946, -87.7848336],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_425f328e51cbad9714450b603fb90881 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_3815487adfbc484a55394deb1325467d.setIcon(icon_425f328e51cbad9714450b603fb90881);
+        
+    
+        var popup_b7dae529ebe6abe893dee85dca352f71 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_13e955c5bf3ceb28e486d881cc4134d9 = $(`<div id="html_13e955c5bf3ceb28e486d881cc4134d9" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00639<br/>             <b>Offense:</b> Not found<br/>             <b>Date:</b> 2025-02-06<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 2008 HRS<br/>               <b>Location:</b> 400 BLOCK OF N. RIDGELAND<br/>               <b>Victim:</b> STATE OF ILLINOIS<br/>               <b>Narrative:</b> jackson, treshaun (m/28) of the 400 bl ock of n. ridgeland, oak park, il. was arrested on an active warrant out of dupage county for traffic and resisting arrest.<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-07-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_b7dae529ebe6abe893dee85dca352f71.setContent(html_13e955c5bf3ceb28e486d881cc4134d9);
+            
+        
+
+        marker_3815487adfbc484a55394deb1325467d.bindPopup(popup_b7dae529ebe6abe893dee85dca352f71)
+        ;
+
+        
+    
+    
+            var marker_79ccdcb5f87ef896dd805077cdaecd5b = L.marker(
+                [41.8705049, -87.79341409999999],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_2d6c7fa29cf5172db2bc8278140f0649 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_79ccdcb5f87ef896dd805077cdaecd5b.setIcon(icon_2d6c7fa29cf5172db2bc8278140f0649);
+        
+    
+        var popup_b54b5b496654db63f52c19abb9478eee = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_dadf61e7c65e30935304603b0e110339 = $(`<div id="html_dadf61e7c65e30935304603b0e110339" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00597<br/>             <b>Offense:</b> BURGLARY – MOTOR VEHICLE<br/>             <b>Date:</b> 2025-02-05<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 2230 - 0410 HRS<br/>               <b>Location:</b> 1000 BLOCK OF S. OAK PARK<br/>               <b>Victim:</b> OAK PARK RESIDENT<br/>               <b>Narrative:</b> person(s) unknown by means of an unloc ked door gained entry to the victim’s 2013 hyundai sonata. once inside, the interior was ransacked and a ryobi air pump, an after-market car alarm and a womens red wallet containing misc id and credit / d ebit cards was removed. estimated loss $100.00<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-07-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_b54b5b496654db63f52c19abb9478eee.setContent(html_dadf61e7c65e30935304603b0e110339);
+            
+        
+
+        marker_79ccdcb5f87ef896dd805077cdaecd5b.bindPopup(popup_b54b5b496654db63f52c19abb9478eee)
+        ;
+
+        
+    
+    
+            var marker_17df9cfdbf2cb3cf3778dfbd8429f09f = L.marker(
+                [41.8889519, -87.80295470000002],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_0f0fd36ed6f59dbe0b432cf8d8f3755d = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_17df9cfdbf2cb3cf3778dfbd8429f09f.setIcon(icon_0f0fd36ed6f59dbe0b432cf8d8f3755d);
+        
+    
+        var popup_3f71fcaedbf1150b09dd4f14ea649741 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_e89c6d5f6429853a73bcf5949c6204da = $(`<div id="html_e89c6d5f6429853a73bcf5949c6204da" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00610<br/>             <b>Offense:</b> RETAIL THEFT ARREST<br/>             <b>Date:</b> 2025-02-05<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 1544 HRS<br/>               <b>Location:</b> 1100 BLOCK OF LAKE<br/>               <b>Victim:</b> TARGET / 1129 LAKE<br/>               <b>Narrative:</b> riccio jr., mathew a. (m/61) of the 1000 block of pleasant, oak park, il. was arrested for retail the ft.<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-06-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_3f71fcaedbf1150b09dd4f14ea649741.setContent(html_e89c6d5f6429853a73bcf5949c6204da);
+            
+        
+
+        marker_17df9cfdbf2cb3cf3778dfbd8429f09f.bindPopup(popup_3f71fcaedbf1150b09dd4f14ea649741)
+        ;
+
+        
+    
+    
+            var marker_87138a16b5d4077aee8a4777632d5b55 = L.marker(
+                [41.8797125, -87.7805092],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_3b3628c63f44ac5feda8215c29b4c01b = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_87138a16b5d4077aee8a4777632d5b55.setIcon(icon_3b3628c63f44ac5feda8215c29b4c01b);
+        
+    
+        var popup_73ace45950b3692cf8a949987971a674 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_b274b5ced0d6452069252c423dd846c5 = $(`<div id="html_b274b5ced0d6452069252c423dd846c5" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00626<br/>             <b>Offense:</b> THEFT<br/>             <b>Date:</b> 2025-02-04<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 1823 - 2100 HRS<br/>               <b>Location:</b> 500 BLOCK OF S. HARVEY<br/>               <b>Victim:</b> OAK PARK RESIDENT<br/>               <b>Narrative:</b> person(s) unknown removed a delivered package containing headphones from the victim’s front door steps. estimated loss $190.00<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-07-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_73ace45950b3692cf8a949987971a674.setContent(html_b274b5ced0d6452069252c423dd846c5);
+            
+        
+
+        marker_87138a16b5d4077aee8a4777632d5b55.bindPopup(popup_73ace45950b3692cf8a949987971a674)
+        ;
+
+        
+    
+    
+            var marker_b41a7b2860f39f03c5c16b277b4ef587 = L.marker(
+                [41.8725908, -87.7866741],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_bbcc6018a9c1711ca677d3152f80048e = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_b41a7b2860f39f03c5c16b277b4ef587.setIcon(icon_bbcc6018a9c1711ca677d3152f80048e);
+        
+    
+        var popup_0322e04f221f47c09d022ac4d540b367 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_2a47f3d5c6f00f03c6682ee6758af740 = $(`<div id="html_2a47f3d5c6f00f03c6682ee6758af740" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00581<br/>             <b>Offense:</b> BURGLARY – MOTOR VEHICLE<br/>             <b>Date:</b> 2025-02-04<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 1800 - 0820 HRS<br/>               <b>Location:</b> 500 BLOCK OF HARRISON<br/>               <b>Victim:</b> OAK PARK RESIDENT<br/>               <b>Narrative:</b> person(s) unknown by means of an unloc ked door gained entry to the victim’s 2006 honda pilot. onc e inside, the vehicle was ransacked. no items of value were reported missing .<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-05-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_0322e04f221f47c09d022ac4d540b367.setContent(html_2a47f3d5c6f00f03c6682ee6758af740);
+            
+        
+
+        marker_b41a7b2860f39f03c5c16b277b4ef587.bindPopup(popup_0322e04f221f47c09d022ac4d540b367)
+        ;
+
+        
+    
+    
+            var marker_da9d81dd9cf283b8f89d40ea1d5f027d = L.marker(
+                [41.8723627, -87.8044365],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_7420b45140379592b3efc53847f433c2 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_da9d81dd9cf283b8f89d40ea1d5f027d.setIcon(icon_7420b45140379592b3efc53847f433c2);
+        
+    
+        var popup_e76731606dc508f16fec7a4e998691f2 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_95954d9780a66514d6895dd2bed9a061 = $(`<div id="html_95954d9780a66514d6895dd2bed9a061" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00595<br/>             <b>Offense:</b> Not found<br/>             <b>Date:</b> 2025-02-04<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 2043 HRS<br/>               <b>Location:</b> 900 BLOCK OF S. HARLEM, FOREST PARK<br/>               <b>Victim:</b> JEWEL FOOD STORE / 7036 ROOSEVELT<br/>               <b>Narrative:</b> griffin, charles (m/34) of the 800 blo ck of s. pulaski, chicago, il. was arrested for retail theft.<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-05-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_e76731606dc508f16fec7a4e998691f2.setContent(html_95954d9780a66514d6895dd2bed9a061);
+            
+        
+
+        marker_da9d81dd9cf283b8f89d40ea1d5f027d.bindPopup(popup_e76731606dc508f16fec7a4e998691f2)
+        ;
+
+        
+    
+    
+            var marker_2e0e7a6c288a308084ea6ad0ea4ab569 = L.marker(
+                [41.8727379, -87.77685060000002],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_f8c49ac766e6867642d25103fa825d86 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_2e0e7a6c288a308084ea6ad0ea4ab569.setIcon(icon_f8c49ac766e6867642d25103fa825d86);
+        
+    
+        var popup_c37464f173dc44deab14809ed22a415a = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_0fd4eb4bef75624c69c16a9dee9fcb59 = $(`<div id="html_0fd4eb4bef75624c69c16a9dee9fcb59" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00584<br/>             <b>Offense:</b> RETAIL THEFT<br/>             <b>Date:</b> 2025-02-04<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 0954 HRS<br/>               <b>Location:</b> 0 – 100 BLOCK OF HARRISON<br/>               <b>Victim:</b> SHELL GAS STATION / 1 HARRISON<br/>               <b>Narrative:</b> m/b, removed a bag of cheetos popcorn and fled the store without payment. estimated loss $1.00<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-07-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_c37464f173dc44deab14809ed22a415a.setContent(html_0fd4eb4bef75624c69c16a9dee9fcb59);
+            
+        
+
+        marker_2e0e7a6c288a308084ea6ad0ea4ab569.bindPopup(popup_c37464f173dc44deab14809ed22a415a)
+        ;
+
+        
+    
+    
+            var marker_ddd144809cc43c99b3f2acba6666f1f7 = L.marker(
+                [41.9052117, -87.8056412],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_5069bd545ed9a89e9965d782c3b1c24e = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_ddd144809cc43c99b3f2acba6666f1f7.setIcon(icon_5069bd545ed9a89e9965d782c3b1c24e);
+        
+    
+        var popup_5e5fc13555fd23aabe53117c318d872f = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_3253ceccf2dd00709da30184e9b5c1c0 = $(`<div id="html_3253ceccf2dd00709da30184e9b5c1c0" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00571<br/>             <b>Offense:</b> RESIDENTIAL BURGLARY<br/>             <b>Date:</b> 2025-02-03<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 0900 - 0929 HRS<br/>               <b>Location:</b> 1400 BLOCK OF N. HARLEM<br/>               <b>Victim:</b> OAK PARK RESIDENT<br/>               <b>Narrative:</b> person(s) unknown by unknown means gai ned entry to the victim’s residence. once inside, several roo ms were ransacked and credit/debit cards and a locked safe containing mis c. papers, jewelry and u.s.c. were removed. estimated loss $6,000.00<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-05-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_5e5fc13555fd23aabe53117c318d872f.setContent(html_3253ceccf2dd00709da30184e9b5c1c0);
+            
+        
+
+        marker_ddd144809cc43c99b3f2acba6666f1f7.bindPopup(popup_5e5fc13555fd23aabe53117c318d872f)
+        ;
+
+        
+    
+    
+            var marker_aabc9388713d22102782e6f5793bcab6 = L.marker(
+                [41.9059517, -87.780382],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_38fe1a6edd88d5fba02e2dafabd070e4 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_aabc9388713d22102782e6f5793bcab6.setIcon(icon_38fe1a6edd88d5fba02e2dafabd070e4);
+        
+    
+        var popup_6b58e922906a4e1fd9ded303865969be = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_ab819d71d1ebbd5a9406ac22a9435581 = $(`<div id="html_ab819d71d1ebbd5a9406ac22a9435581" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00579<br/>             <b>Offense:</b> Not found<br/>             <b>Date:</b> 2025-02-03<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 1600 - 2030 HRS<br/>               <b>Location:</b> 1100 BLOCK OF N. LOMBARD<br/>               <b>Victim:</b> OAK PARK RESIDENT<br/>               <b>Narrative:</b> person(s) unknown by unknown means bro ke the rear window to the victim’s 2004 pontiac vibe. est imated damage $300.00<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-04-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_6b58e922906a4e1fd9ded303865969be.setContent(html_ab819d71d1ebbd5a9406ac22a9435581);
+            
+        
+
+        marker_aabc9388713d22102782e6f5793bcab6.bindPopup(popup_6b58e922906a4e1fd9ded303865969be)
+        ;
+
+        
+    
+    
+            var marker_e83e6341e7d44ae43c962912a92b2b16 = L.marker(
+                [41.8948592, -87.7787317],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_f5f8999a1ecab4a5acbd579ab44b4505 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_e83e6341e7d44ae43c962912a92b2b16.setIcon(icon_f5f8999a1ecab4a5acbd579ab44b4505);
+        
+    
+        var popup_3560913cce36545bc19e0a5bba741549 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_03e39256b8f758768d15df10e592df75 = $(`<div id="html_03e39256b8f758768d15df10e592df75" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00566<br/>             <b>Offense:</b> Not found<br/>             <b>Date:</b> 2025-02-02<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 0857 – 0958 HRS<br/>               <b>Location:</b> 100 BLOCK OF CHICAGO<br/>               <b>Victim:</b> CHICAGO RESIDENT<br/>               <b>Narrative:</b> m/b, was observed on video removing th e victim’s wallet containing misc. cards and u.s.c. from the t op of a counter. offender left in a black 2012 honda. estimated loss $150.00<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-04-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_3560913cce36545bc19e0a5bba741549.setContent(html_03e39256b8f758768d15df10e592df75);
+            
+        
+
+        marker_e83e6341e7d44ae43c962912a92b2b16.bindPopup(popup_3560913cce36545bc19e0a5bba741549)
+        ;
+
+        
+    
+    
+            var marker_aba49ba0417178dc1498afd2da904a65 = L.marker(
+                [41.885123, -87.7895061],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_d81b6f884515d9b631a351a4bcef195b = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_aba49ba0417178dc1498afd2da904a65.setIcon(icon_d81b6f884515d9b631a351a4bcef195b);
+        
+    
+        var popup_fcd8b6ec9e506ee30dd280c769d06e4b = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_8c29ed276aae15778499508d917edd94 = $(`<div id="html_8c29ed276aae15778499508d917edd94" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00563<br/>             <b>Offense:</b> Not found<br/>             <b>Date:</b> 2025-02-02<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 1740-1000 HRS<br/>               <b>Location:</b> FIRST BLOCK OF PLEASANT<br/>               <b>Victim:</b> Not found<br/>               <b>Narrative:</b> person(s) unknown entered the storage room of the buildng by unknown means and once inside used a cut ting tool to cut the cable lock and removed a grey diamondback mounain b ike. loss estimated is unknown.<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/weekend-summary-report-31january2025-03february2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_fcd8b6ec9e506ee30dd280c769d06e4b.setContent(html_8c29ed276aae15778499508d917edd94);
+            
+        
+
+        marker_aba49ba0417178dc1498afd2da904a65.bindPopup(popup_fcd8b6ec9e506ee30dd280c769d06e4b)
+        ;
+
+        
+    
+    
+            var marker_b82a4afe75b992a3354c893aa4521385 = L.marker(
+                [41.878649, -87.80316979999999],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_02d94bddce42bcb249d8d9017a5e49c1 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_b82a4afe75b992a3354c893aa4521385.setIcon(icon_02d94bddce42bcb249d8d9017a5e49c1);
+        
+    
+        var popup_26edfd939df4ee5833a2c18d73653960 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_9c70c0050e08018e97e59e09aefa1463 = $(`<div id="html_9c70c0050e08018e97e59e09aefa1463" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00542<br/>             <b>Offense:</b> OUTSIDE WARRANT ARREST<br/>             <b>Date:</b> 2025-02-01<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 1308 HRS<br/>               <b>Location:</b> 520 S. MAPLE AVE. (OAK PARK HOSPITAL)<br/>               <b>Victim:</b> Not found<br/>               <b>Narrative:</b> a female juvenile, peoria illinois res ident was identified as a missing juvenile. a name check also revealed a juvenile warrant out of cook county for psmv. the subject wa s taken into custody, transported to the station, processed and tot the c ook county juvenile detention center.<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/weekend-summary-report-31january2025-03february2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_26edfd939df4ee5833a2c18d73653960.setContent(html_9c70c0050e08018e97e59e09aefa1463);
+            
+        
+
+        marker_b82a4afe75b992a3354c893aa4521385.bindPopup(popup_26edfd939df4ee5833a2c18d73653960)
+        ;
+
+        
+    
+    
+            var marker_d6da24ae97b3690ae5c40a40494de797 = L.marker(
+                [41.8801991, -87.7830505],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_035e1c7e7029bc53bc924f52129a377c = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_d6da24ae97b3690ae5c40a40494de797.setIcon(icon_035e1c7e7029bc53bc924f52129a377c);
+        
+    
+        var popup_dd3691f5955bb4568ada7a6e687db78f = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_ca2be415b7eb3c76dc5013ab3db02557 = $(`<div id="html_ca2be415b7eb3c76dc5013ab3db02557" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00539<br/>             <b>Offense:</b> RETAIL THEFT<br/>             <b>Date:</b> 2025-02-01<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 0845 HRS<br/>               <b>Location:</b> 300 BLOCK OF MADISON<br/>               <b>Victim:</b> CVS PHARMACY / 345 MADISON<br/>               <b>Narrative:</b> m/b, removed a gift bag and four boxes of nicorette gum and then exited the business without payment. estimated loss $323.16<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/summary-report-04-february-2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_dd3691f5955bb4568ada7a6e687db78f.setContent(html_ca2be415b7eb3c76dc5013ab3db02557);
+            
+        
+
+        marker_d6da24ae97b3690ae5c40a40494de797.bindPopup(popup_dd3691f5955bb4568ada7a6e687db78f)
+        ;
+
+        
+    
+    
+            var marker_9326b993cc3c53655e9431fdd9efb842 = L.marker(
+                [41.8882397, -87.80375769999999],
+                {
+}
+            ).addTo(marker_cluster_39efbf737c8a1e3cd68be680645d39c2);
+        
+    
+            var icon_39207a2d8fd6bd46f5ca335a66421b1e = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_9326b993cc3c53655e9431fdd9efb842.setIcon(icon_39207a2d8fd6bd46f5ca335a66421b1e);
+        
+    
+        var popup_041316c1df5f894d3c33da47b194a5a7 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_84761321db728961cee6d0e83d731898 = $(`<div id="html_84761321db728961cee6d0e83d731898" style="width: 100.0%; height: 100.0%;">             <b>Complaint #:</b> 25-00523<br/>             <b>Offense:</b> RETAIL THEFT ARREST<br/>             <b>Date:</b> 2025-01-31<br/>             <details>               <summary><b>View Details</b></summary>               <b>Time:</b> 1451 HRS<br/>               <b>Location:</b> 1129 LAKE ST.<br/>               <b>Victim:</b> OAK PARK RESIDENT<br/>               <b>Narrative:</b> foreman-spencer, eddie t. m/38 of the 400 block of n. saint louis ave, chicago, il was stopped and arrest ed for retail theft after he was positively identified as the subject w ho entered the business, removed merchandise items from the display shelf an d exited the business without paying. the subject was transported to the station, processed, issued a notice to appear citation and was released .<br/>               <b>URL:</b> <a href="https://www.oak-park.us/files/assets/oakpark/v/1/police-department/activity-reports/2025/february/weekend-summary-report-31january2025-03february2025.pdf" target="_blank">PDF Link</a>             </details>         </div>`)[0];
+                popup_041316c1df5f894d3c33da47b194a5a7.setContent(html_84761321db728961cee6d0e83d731898);
+            
+        
+
+        marker_9326b993cc3c53655e9431fdd9efb842.bindPopup(popup_041316c1df5f894d3c33da47b194a5a7)
+        ;
+
+        
+    
+    
+            marker_cluster_39efbf737c8a1e3cd68be680645d39c2.addTo(feature_group_d02a59857bfa4b5755da86973eb1347a);
+        
+    
+            feature_group_d02a59857bfa4b5755da86973eb1347a.addTo(map_f7b3781aa0e84513c64163b85c3db257);
+        
+    
+            var feature_group_446ff50c9a864bb61f676f82d17075d2 = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var heat_map_b42c0131f2a15de1a9b8be955e406234 = L.heatLayer(
+                [[41.879339, -87.80353099999999], [41.8918139, -87.7782988], [41.8918139, -87.7782988], [41.8869836, -87.7830967], [41.8930946, -87.7848336], [41.8705049, -87.79341409999999], [41.8889519, -87.80295470000002], [41.8797125, -87.7805092], [41.8725908, -87.7866741], [41.8723627, -87.8044365], [41.8727379, -87.77685060000002], [41.9052117, -87.8056412], [41.9059517, -87.780382], [41.8948592, -87.7787317], [41.885123, -87.7895061], [41.878649, -87.80316979999999], [41.8801991, -87.7830505], [41.8882397, -87.80375769999999]],
+                {
+  "minOpacity": 0.5,
+  "maxZoom": 1,
+  "radius": 10,
+  "blur": 15,
+}
+            );
+        
+    
+            heat_map_b42c0131f2a15de1a9b8be955e406234.addTo(feature_group_446ff50c9a864bb61f676f82d17075d2);
+        
+    
+            feature_group_446ff50c9a864bb61f676f82d17075d2.addTo(map_f7b3781aa0e84513c64163b85c3db257);
+        
+    
+            var layer_control_5b24c520f222b48abff84322441b301d_layers = {
+                base_layers : {
+                    "openstreetmap" : tile_layer_606974c6349059da771471c1e1572b75,
+                },
+                overlays :  {
+                    "Marker Clusters" : feature_group_d02a59857bfa4b5755da86973eb1347a,
+                    "Heatmap" : feature_group_446ff50c9a864bb61f676f82d17075d2,
+                },
+            };
+            let layer_control_5b24c520f222b48abff84322441b301d = L.control.layers(
+                layer_control_5b24c520f222b48abff84322441b301d_layers.base_layers,
+                layer_control_5b24c520f222b48abff84322441b301d_layers.overlays,
+                {
+  "position": "topright",
+  "collapsed": false,
+  "autoZIndex": true,
+}
+            ).addTo(map_f7b3781aa0e84513c64163b85c3db257);
+
+        
+</script>
+</html>
