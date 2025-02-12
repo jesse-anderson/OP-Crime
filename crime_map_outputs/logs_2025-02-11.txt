@@ -1,12 +1,8 @@
-
-[DEBUG] Error block for Complaint # 25-00698:
-COMPLAINT NUMBER: 25-00698 OFFENSE: TRAFFIC / WARRANT ARREST DATE(S) 11-FEB-25 TIME(S): 0005 HRS. LOCATION: 800 BLOCK OF CHICAGO NARRATIVE: JONES, BRYARA (F/31) OF THE 10000 BLOC K OF S. PRINCETON, CHICAGO, IL. WAS STOPPED FOR TRAFFIC AND ARRESTED F OR DRIVING WITH A SUSPENDED DRIVERS LICENSE. SUBJECT WAS ALSO FOUND TO HAVE AN ACTIVE DUPAGE COUNTY WARRANT FOR TRAFFIC OFFENSES.
-
-Start Time: 2025-02-11 13:00:02
-End Time: 2025-02-11 13:00:15
-Total Processing Time: 12.68 seconds
-Total complaints processed: 3
+Start Time: 2025-02-11 18:00:03
+End Time: 2025-02-11 18:00:10
+Total Processing Time: 6.76 seconds
+Total complaints processed: 0
 Number of incorrectly parsed dates (1900-01-01): 0
-Number of complaints with errors (Error Free = 0): 1
+Number of complaints with errors (Error Free = 0): 0
 Number of duplicate complaint numbers: 0
 Total Geocoding API calls made: 0
