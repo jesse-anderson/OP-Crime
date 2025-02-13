@@ -1,8 +1,12 @@
-Start Time: 2025-02-13 06:00:02
-End Time: 2025-02-13 06:00:09
-Total Processing Time: 6.88 seconds
-Total complaints processed: 0
+
+[DEBUG] Error block for Complaint # 25-00681:
+COMPLAINT NUMBER: 25-00681 OFFENSE: RECOVERED STOLEN AUTO DATE(S) 11-FEB-25 TIME(S): 2123 HRS. LOCATION: 4100 BLOCK OF W. GRENSHAW, CHICAGO VICTIM/ADDRESS: RICHTON PARK RESIDENT NARRATIVE: A 2018 HONDA CIVIC THAT WAS REPORTED S TOLEN ON 09-FEB-25, FROM THE 6000 BLOCK OF W. ROOSEVELT WAS RECOVERED BY A FRIEND OF THE VICTIM.
+
+Start Time: 2025-02-13 13:00:02
+End Time: 2025-02-13 13:00:16
+Total Processing Time: 13.80 seconds
+Total complaints processed: 6
 Number of incorrectly parsed dates (1900-01-01): 0
-Number of complaints with errors (Error Free = 0): 0
+Number of complaints with errors (Error Free = 0): 1
 Number of duplicate complaint numbers: 0
-Total Geocoding API calls made: 0
+Total Geocoding API calls made: 1
