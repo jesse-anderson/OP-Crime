@@ -1,12 +1,8 @@
-
-[DEBUG] Error block for Complaint # 25-00840:
-COMPLAINT NUMBER: 25-00840 OFFENSE: WARRANT ARREST DATE(S) 18-FEB-25 TIME(S): 2110 HRS. LOCATION: 5900 BLOCK OF W. ADAMS, CHICAGO NARRATIVE: BUFKIN, JAMARIO (M/32) OF THE 2600 BLO CK OF W. 12 TH PLACE, CHICAGO, IL. WAS ARRESTED ON AN ACTIVE COOK COUNTY WARRANT FOR RETAIL THEFT.
-
-Start Time: 2025-02-19 13:00:03
-End Time: 2025-02-19 13:00:11
-Total Processing Time: 8.13 seconds
-Total complaints processed: 4
+Start Time: 2025-02-19 18:00:02
+End Time: 2025-02-19 18:00:10
+Total Processing Time: 7.49 seconds
+Total complaints processed: 0
 Number of incorrectly parsed dates (1900-01-01): 0
-Number of complaints with errors (Error Free = 0): 1
+Number of complaints with errors (Error Free = 0): 0
 Number of duplicate complaint numbers: 0
 Total Geocoding API calls made: 0
