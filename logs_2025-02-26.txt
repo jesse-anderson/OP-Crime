@@ -1,8 +1,12 @@
-Start Time: 2025-02-26 13:00:03
-End Time: 2025-02-26 13:00:11
-Total Processing Time: 7.98 seconds
-Total complaints processed: 0
+
+[DEBUG] Error block for Complaint # 25-00966:
+COMPLAINT NUMBER: 25-00966 OFFENSE: TRAFFIC & WARRANT ARREST DATE(S) 26-FEB-25 TIME(S): 0349 HRS. LOCATION: 600 BLOCK OF MADISON NARRATIVE: ROBERTS, JIMMY (M/56) OF THE 5800 BLOC K OF W. SUPERIOR, CHICAGO, IL. WAS ARRESTED FOR DRIVING WITH A SUSPEN DED LICENSE AFTER BEING INVOLVED IN AN ACCIDENT. SUBJECT WAS ALSO FOUND TO HAVE AN ACTIVE COOK COUNTY WARRANT FOR TRAFFIC.
+
+Start Time: 2025-02-26 18:00:03
+End Time: 2025-02-26 18:00:17
+Total Processing Time: 13.96 seconds
+Total complaints processed: 7
 Number of incorrectly parsed dates (1900-01-01): 0
-Number of complaints with errors (Error Free = 0): 0
+Number of complaints with errors (Error Free = 0): 1
 Number of duplicate complaint numbers: 0
 Total Geocoding API calls made: 0
