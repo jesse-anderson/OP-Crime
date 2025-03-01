@@ -1,16 +1,8 @@
-
-[DEBUG] Error block for Complaint # 25-04585:
-COMPLAINT NUMBER: 25-04585 OFFENSE: RECOVERED STOLEN MOTOR VEHICLE DATE(S): 27-FEB-25 TIME(S): 1105 HRS. LOCATION: 2300 BLOCK OF N. 17 TH ST., MILWAUKEE, WI. VICTIM/ADDRESS: AURORA RESIDENT NARRATIVE: THE 2014 MERCEDES BENZ E350 THAT WAS R EPORTED STOLEN OUT OF OAK PARK ON 09-AUG-24, FROM THE 400 B LOCK OF LENOX WAS RECOVERED BY THE MILWAUKEE POLICE DEPARTMENT. NO A PPREHENSIONS. Oak Park Police Department *Individuals listed have been charged with a crimin al offense and have a pending court date. All defendants are considered innocent until proven gui lty in a court of law. COMPLAINT NUMBER: 25-00990 OFFENSE: THEFT OF MOTOR VEHICLE PARTS OR ACCESSORIES DATE(S): 26-FEB-25 - 27-FEB-25 TIME(S): 1700 - 1312 HRS. LOCATION: 100 BLOCK OF S. HUMPHREY VICTIM/ADDRESS: OAK PARK RESIDENT NARRATIVE: PERSON(S) UNKNOWN REMOVED THE FRONT LI CENSE PLATE FROM THE VICTIM’S BMW 650I.
-
-
-[DEBUG] Error block for Complaint # 25-00990:
-COMPLAINT NUMBER: 25-00990 OFFENSE: THEFT OF MOTOR VEHICLE PARTS OR ACCESSORIES DATE(S): 26-FEB-25 - 27-FEB-25 TIME(S): 1700 - 1312 HRS. LOCATION: 100 BLOCK OF S. HUMPHREY VICTIM/ADDRESS: OAK PARK RESIDENT NARRATIVE: PERSON(S) UNKNOWN REMOVED THE FRONT LI CENSE PLATE FROM THE VICTIM’S BMW 650I.
-
-Start Time: 2025-02-28 13:00:02
-End Time: 2025-02-28 13:00:17
-Total Processing Time: 14.84 seconds
-Total complaints processed: 3
+Start Time: 2025-02-28 18:00:03
+End Time: 2025-02-28 18:00:11
+Total Processing Time: 8.46 seconds
+Total complaints processed: 0
 Number of incorrectly parsed dates (1900-01-01): 0
-Number of complaints with errors (Error Free = 0): 2
+Number of complaints with errors (Error Free = 0): 0
 Number of duplicate complaint numbers: 0
-Total Geocoding API calls made: 1
+Total Geocoding API calls made: 0
