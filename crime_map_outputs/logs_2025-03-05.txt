@@ -1,16 +1,8 @@
-
-[DEBUG] Error block for Complaint # 25-01018:
-COMPLAINT NUMBER: 25-01018 OFFENSE: CRIMINAL DAMAGE TO PROPERTY ARREST DATE(S) 01-MAR-25 TIME(S): 1006 HRS LOCATION: 900 BLOCK OF HIGHLAND VICTIM/ADDRESS: OAK PARK RESIDENTS NARRATIVE: CASPER, TAMI F/52 OF THE 100 BLOCK OF BERNICE AVE IN NORTHLAKE WAS ARRESTED AT THE ABOVE LOCATION FOR CRIMINAL DAMAGE TO PROPERTY AND DISORDERLY CONDUCT. SUBJECT WAS GIVEN CIITATION AND NOTICE TO APPEAR IN COURT AND RELEASE D. COMPLAINT NUMBER: 25-01084 OFFENSE: BATTERY ARREST DATE(S) 04-MAR-25 TIME(S): 1921 HRS LOCATION: 100 BLOCK OF MADISON VICTIM/ADDRESS: MALE JUVENILE NARRATIVE: MITTS, VALORIE F/55 OF THE 1600 BLOCK OF S 19 TH AVE IN MAYWOOD WAS ARRESTED AT THE ABOVE LOCATION FOR BATTERY. SUBJECT AS PROCESSED, GIVEN A CITATION AND NOTICE TO APPEAR IN COURT AND RELEASED FROM THE STATION. Oak Park Police Department *Individuals listed have been charged with a crimin al offense and have a pending court date. All defendants are considered innocent until proven gui lty in a court of law.
-
-
-[DEBUG] Error block for Complaint # 25-01084:
-COMPLAINT NUMBER: 25-01084 OFFENSE: BATTERY ARREST DATE(S) 04-MAR-25 TIME(S): 1921 HRS LOCATION: 100 BLOCK OF MADISON VICTIM/ADDRESS: MALE JUVENILE NARRATIVE: MITTS, VALORIE F/55 OF THE 1600 BLOCK OF S 19 TH AVE IN MAYWOOD WAS ARRESTED AT THE ABOVE LOCATION FOR BATTERY. SUBJECT AS PROCESSED, GIVEN A CITATION AND NOTICE TO APPEAR IN COURT AND RELEASED FROM THE STATION. Oak Park Police Department *Individuals listed have been charged with a crimin al offense and have a pending court date. All defendants are considered innocent until proven gui lty in a court of law.
-
-Start Time: 2025-03-05 13:00:03
-End Time: 2025-03-05 13:00:18
-Total Processing Time: 15.01 seconds
-Total complaints processed: 4
+Start Time: 2025-03-05 18:00:03
+End Time: 2025-03-05 18:00:12
+Total Processing Time: 8.98 seconds
+Total complaints processed: 0
 Number of incorrectly parsed dates (1900-01-01): 0
-Number of complaints with errors (Error Free = 0): 2
+Number of complaints with errors (Error Free = 0): 0
 Number of duplicate complaint numbers: 0
-Total Geocoding API calls made: 1
+Total Geocoding API calls made: 0
