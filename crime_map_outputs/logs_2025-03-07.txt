@@ -1,8 +1,12 @@
-Start Time: 2025-03-07 13:00:02
-End Time: 2025-03-07 13:00:11
-Total Processing Time: 9.20 seconds
-Total complaints processed: 0
+
+[DEBUG] Error block for Complaint # 25-01123:
+COMPLAINT NUMBER: 25-01123 OFFENSE: THEFT DATE(S) 06-MAR-25 TIME(S): 0745 - 1700 HRS. LOCATION: 300 BLOCK OF SOUTH BLVD. VICTIM/ADDRESS: OAK PARK RESIDENT NARRATIVE: PERSON(S) UNKNOWN REMOVED THE VICTIM’S BLUE TREK X2 BICYCLE THAT HAD BEEN SECURED TO A BICYCLE RACK. ESTIMATED LOSS $750.00
+
+Start Time: 2025-03-07 18:00:02
+End Time: 2025-03-07 18:00:18
+Total Processing Time: 15.13 seconds
+Total complaints processed: 4
 Number of incorrectly parsed dates (1900-01-01): 0
-Number of complaints with errors (Error Free = 0): 0
+Number of complaints with errors (Error Free = 0): 1
 Number of duplicate complaint numbers: 0
 Total Geocoding API calls made: 0
