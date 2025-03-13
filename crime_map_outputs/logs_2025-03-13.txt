@@ -1,8 +1,12 @@
-Start Time: 2025-03-13 06:00:03
-End Time: 2025-03-13 06:00:13
-Total Processing Time: 10.05 seconds
-Total complaints processed: 0
+
+[DEBUG] Error block for Complaint # 25-01236:
+COMPLAINT NUMBER: 25-01236 OFFENSE: CRIMINAL TRESPASS TO RESIDENCE ARREST DATE(S) 12-MAR-25 TIME(S): 1630 HRS. LOCATION: 500 BLOCK OF S. KENILWORTH VICTIM/ADDRESS: OAK PARK RESIDENT NARRATIVE: KWAK, DAMIAN (M/26) OF THE 700 BLOCK O F LEXINGTON, OAK PARK, IL. WAS ARRESTED FOR CRIMINAL TRESPASS TO RESIDENCE THAT OCCURRED ON THE 300 BLOCK OF S. MAPLE.
+
+Start Time: 2025-03-13 13:00:02
+End Time: 2025-03-13 13:00:13
+Total Processing Time: 11.11 seconds
+Total complaints processed: 3
 Number of incorrectly parsed dates (1900-01-01): 0
-Number of complaints with errors (Error Free = 0): 0
+Number of complaints with errors (Error Free = 0): 1
 Number of duplicate complaint numbers: 0
-Total Geocoding API calls made: 0
+Total Geocoding API calls made: 1
