@@ -1,0 +1,8 @@
+Start Time: 2025-03-15 06:00:03
+End Time: 2025-03-15 06:00:13
+Total Processing Time: 10.43 seconds
+Total complaints processed: 0
+Number of incorrectly parsed dates (1900-01-01): 0
+Number of complaints with errors (Error Free = 0): 0
+Number of duplicate complaint numbers: 0
+Total Geocoding API calls made: 0
