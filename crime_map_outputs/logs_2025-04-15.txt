@@ -1,8 +1,12 @@
-Start Time: 2025-04-15 06:00:02
-End Time: 2025-04-15 06:00:16
-Total Processing Time: 13.59 seconds
-Total complaints processed: 0
+
+[DEBUG] Error block for Complaint # 25-01782:
+COMPLAINT NUMBER: 25-01782 OFFENSE: THEFT DATE(S): 13-APR -25 TIME(S): 1241 HRS. LOCATION: 800 BLOCK MADISON ST. VICTIM/ADDRESS: OAK PARK BUSINESS NARRATIVE : OFFENDER: M/B, LATE 20’S, 5’7, DARK BEARD WEARING A BLACK PUFFY COAT, DARK PANTS AND GRAY SHOES ENTERED THE BUSINESS AND REMOVED THE TIP JAR BY THE REGISTER AND EXITED THE STORE. ESTIMATED LOSS $15.00.
+
+Start Time: 2025-04-15 13:00:03
+End Time: 2025-04-15 13:00:23
+Total Processing Time: 20.02 seconds
+Total complaints processed: 10
 Number of incorrectly parsed dates (1900-01-01): 0
-Number of complaints with errors (Error Free = 0): 0
+Number of complaints with errors (Error Free = 0): 1
 Number of duplicate complaint numbers: 0
-Total Geocoding API calls made: 0
+Total Geocoding API calls made: 8
