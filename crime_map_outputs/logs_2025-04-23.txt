@@ -1,8 +1,12 @@
-Start Time: 2025-04-23 06:00:03
-End Time: 2025-04-23 06:00:16
-Total Processing Time: 12.99 seconds
-Total complaints processed: 0
-Number of incorrectly parsed dates (1900-01-01): 0
-Number of complaints with errors (Error Free = 0): 0
+
+[DEBUG] Error block for Complaint # 25-01947:
+COMPLAINT NUMBER: 25-01947 OFFENSE: CRIMINAL DAMAGE TO PROPERTY DATE(S) 01-APR-2025, 14-APR-2025, 21-APR-2025 TIME(S): 1442 HRS. 1946 HRS. 2230 HRS . LOCATION: 400 BLOCK OF N. AUSTIN VICTIM/ADDRESS: OAK PARK RESIDENT NARRATIVE: PERSON(S) UNKNOWN BY MEANS OF ROCKS BR OKE TWO RESIDENTIAL WINDOWS AND ONE CAR WINDSHIELD BELONGIN G TO THE VICTIM OVER THE COURSE OF DATES/TIMES LISTED ABOVE.
+
+Start Time: 2025-04-23 13:00:03
+End Time: 2025-04-23 13:00:22
+Total Processing Time: 19.34 seconds
+Total complaints processed: 1
+Number of incorrectly parsed dates (1900-01-01): 1
+Number of complaints with errors (Error Free = 0): 1
 Number of duplicate complaint numbers: 0
 Total Geocoding API calls made: 0
