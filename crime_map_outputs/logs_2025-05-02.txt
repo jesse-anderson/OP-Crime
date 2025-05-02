@@ -1,12 +1,8 @@
-
-[DEBUG] Error block for Complaint # 25-02151:
-COMPLAINT NUMBER: 25-02151 OFFENSE: MOTOR VEHICLE THEFT DATE(S): 01-MAY25 TIME (S): 1535 -1645 HRS. LOCATION: 200 N BLOCK OF EUCLID AVE. VICTIM/ADDRESS: OAK PARK RESIDENT NARRATIVE : PERSON(S) UNKNOWN BY UNKNOWN MEANS GAINED ENTRY TO THE VICTIMS 2020 GREY KIA FORTE AND REMOVED THE VEHICLE FROM THE LOCATION.
-
-Start Time: 2025-05-02 13:00:02
-End Time: 2025-05-02 13:00:23
-Total Processing Time: 20.96 seconds
-Total complaints processed: 4
-Number of incorrectly parsed dates (1900-01-01): 1
-Number of complaints with errors (Error Free = 0): 1
+Start Time: 2025-05-02 18:00:02
+End Time: 2025-05-02 18:00:21
+Total Processing Time: 19.33 seconds
+Total complaints processed: 0
+Number of incorrectly parsed dates (1900-01-01): 0
+Number of complaints with errors (Error Free = 0): 0
 Number of duplicate complaint numbers: 0
-Total Geocoding API calls made: 3
+Total Geocoding API calls made: 0
