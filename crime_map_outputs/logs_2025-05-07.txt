@@ -1,12 +1,8 @@
-
-[DEBUG] Error block for Complaint # 25-02253:
-COMPLAINT NUMBER: 25-02253 OFFENSE: JUVENILE WARRANT ARREST DATE(S): 06-MAY -25 TIME(S): 2217 HRS LOCATION: 200 BLOCK OF LAKE ST NARRATIVE: A FEMALE JUVENILE FROM CHICAGO WAS STOPPED AS A SUSPICIO US PERSON AT THE ABOVE LOCATION. A NAMECHECK FOUND SUBJECT TO BE REPORTED MISSING OUT OF CHICAGO AND TO HAVE AN ACTIVE COOK COUNTY JUVENILE WARRANT FOR ARMED ROBBERY. SUBJECT WAS REMOVED FROM LEADS AND TRANSPORTED TO JUVENILE DETENTION FOR THE WARRANT.
-
-Start Time: 2025-05-07 13:00:03
-End Time: 2025-05-07 13:00:26
-Total Processing Time: 23.15 seconds
-Total complaints processed: 4
+Start Time: 2025-05-07 18:00:03
+End Time: 2025-05-07 18:00:18
+Total Processing Time: 15.88 seconds
+Total complaints processed: 0
 Number of incorrectly parsed dates (1900-01-01): 0
-Number of complaints with errors (Error Free = 0): 1
+Number of complaints with errors (Error Free = 0): 0
 Number of duplicate complaint numbers: 0
-Total Geocoding API calls made: 1
+Total Geocoding API calls made: 0
